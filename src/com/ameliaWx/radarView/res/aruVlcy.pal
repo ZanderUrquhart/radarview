@@ -1,0 +1,28 @@
+;
+; Full range radial velocity palette
+; Made by Zander Urquhart
+;
+
+Product: RV
+Units:   mph
+Step:    20
+Scale:   2.236936 ; converts mph to m/s
+
+Color:  -120    64    0   64
+Color:  -100   128    0  128
+Color:  -80    128  128  255
+Color:  -60      0    0   64
+Color:  -40    128  255  255
+Color:  -20      0   96   64
+Color:  -10     64  160   96  224  232  228
+Color:    0    232  224  224
+Color:   10    192   64   64
+Color:   20     96   64    0
+Color:   40    255  192  128
+Color:   60     64    0   64
+Color:   80    255  128  255
+Color:   100   255   64  128
+Color:   120   128    0   64
+
+ND:   0   0   0
+RF: 128   0 192

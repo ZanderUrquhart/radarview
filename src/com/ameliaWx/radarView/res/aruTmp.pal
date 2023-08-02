@@ -1,0 +1,31 @@
+;
+; Full range temperature palette
+; Made by Zander Urquhart
+;
+
+Product: TMP
+Units:  K
+Step:   10
+
+Color:  173.15   125   75  125
+Color:  193.15    75  125   75
+Color:  213.15   255  235  235
+Color:  223.15    60  255  255   60   60  255
+Color:  233.15    60   60  230
+Color:  243.15   255  150  220
+Color:  253.15   143    0  143
+Color:  255.37   255  255  255
+Color:  263.15    55    0  155  150  220  255
+Color:  273.15   150  255  255
+Color:  278.15     0  191  127
+Color:  283.15     0  127    0
+Color:  288.15    50  191   50
+Color:  293.15   255  255   50
+Color:  298.15   175   50    0   64    0    0
+Color:  303.15   127    0    0
+Color:  313.15   255  170  255
+Color:  323.15    71   48   71
+Color:  333.15     0    0    0
+
+ND:  20 20 25
+RF:  64 64 64

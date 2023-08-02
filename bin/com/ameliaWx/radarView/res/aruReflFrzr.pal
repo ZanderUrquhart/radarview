@@ -1,0 +1,18 @@
+;
+; Full range freezing rain reflectivity palette (low filter)
+; Made by Zander Urquhart
+;
+
+Product: BR
+Units:  DBZ
+Step:   10
+
+Color:    0      0    0    0
+Color:   20    255  129  255
+Color:   30    152   62  152  64   16  64
+Color:   40     64    0   16
+Color:   50    255    0    0
+Color:   60    255  192  192
+
+ND:   0   0   0
+RF: 128   0 192

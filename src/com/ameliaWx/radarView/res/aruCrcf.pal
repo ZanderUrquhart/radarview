@@ -1,0 +1,24 @@
+;
+; Full range correlation coefficient palette
+; Made by Zander Urquhart
+;
+
+Product: CC
+Units:   NONE
+Step:    0.001
+
+Color:  0        0    0    0
+Color:  0.5    128  128  148
+Color:  0.6      0    0   64
+Color:  0.7      0    0  128
+Color:  0.8    255  255  128
+Color:  0.9    255  150   64
+Color:  0.95   192   75    0
+Color:  0.975  128    0    0
+Color:  1.0     64    0    0
+Color:  1.01   128   16  112
+Color:  1.05   255  128  255
+Color:  1.1    255  255  255
+
+ND:   0   0   0
+RF: 128   0 192

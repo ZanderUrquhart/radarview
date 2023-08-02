@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/WeatherUtils"/>
+	<classpathentry kind="lib" path="/home/a-urq/eclipse-workspace/jarLibraries/netcdfAll-5.3.3.jar"/>
+	<classpathentry kind="lib" path="/home/a-urq/eclipse-workspace/jarLibraries/commons-math3-3.6.1.jar"/>
+	<classpathentry kind="lib" path="/home/a-urq/eclipse-workspace/jarLibraries/commons-io-2.7.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SRTMWrapper"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Sounding Viewer"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

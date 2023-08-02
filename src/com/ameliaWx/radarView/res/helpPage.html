@@ -1,0 +1,301 @@
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>RadarView Help Page</title>
+        <style>
+            html{
+                font-family: sans-serif;
+            }
+            .version {
+                font-size: small;
+            }
+            .serif {
+                font-family: serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>RadarView Help Page</h1>
+        <p class="version"><i>Beta Version 4 - Released ???? ??, 2023<br>Made by <a href="about.html">Amelia Urquhart</a></i></p>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScJ_znAk9eXMFkPeXFscD6WDZAvThl3yZHq1_kdk6m0l59I9A/viewform?usp=sf_link">Click here to report a bug</a>
+        <br>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdteKWtiyNbjerKJ60fR7MtbUqR4ig4x7Yw0VKbO6yetnwsRQ/viewform?usp=sf_link">Click here to request a feature</a>
+
+        <h2>City Data Attribution</h2>
+        <p>The city data used in RadarView is a modified version of the data provided by <a href = "https://simplemaps.com/data/us-cities">Simplemaps</a> under the Creative Commons Attribution 4.0 license.</p>
+        <br>
+
+        <p>The page will be prettier later I swear</p>
+        <p>Source code will be available once I get my head around Git and Github</p>
+        <br/>
+
+        <h2>Contents</h2>
+        <p>WIP</p>
+        
+        <h2>What's New in Beta Version 4</h2>
+        <ul>
+            <li>RAP Soundings! Right-click anywhere to get a sense of the meteorological environment with a vertical temperature profile and hodograph.</li>
+            <li>City markers added to basemap. Press C to toggle visibility.</li>
+        </ul>
+
+        <h2>What's New in Beta Version 3</h2>
+        <ul>
+            <li>Precipitation Types! Choose between seeing 3, 4, or 12 different precipitation types. Default is 4.</li>
+            <li>Inspect tool added, which reads out the data that the cursor is hovering over. Press I to use.</li>
+            <li>Specific Differential Phase (KDP) scans added, best used for identifying areas of heavy rain.</li>
+            <li>Velocity and correlation coefficient color tables adjusted.</li>
+            <li>Offline radar sites now display as red on the map. Sites that may be offline or are otherwise having trouble display as yellow.</li>
+            <li>Canada and Mexico added to basemap.</li>
+            <li>Time zones other than the Central Time Zone now work.</li>
+            <li>Animation Mode can be turned off as well as on.</li>
+            <li>The radar animation scrollbar now shows unloaded files as a gray bar.</li>
+            <li>The low-filter on reflectivity scans can now be turned on and off.</li>
+            <li>Program stability is still not perfect but has been further improved</li>
+        </ul>
+        
+        <h2>What's New in Beta Version 2</h2>
+        <ul>
+            <li>Fixed many crashes, program stability improved.</li>
+            <li>Changed "warnings" and "watches" to "storm-scale warnings" and "large-scale warnings" to more accurately reflect what the program actually displays.</li>
+            <li>Improved colors for winter weather related large-scale warnings.</li>
+            <li>Added Ice Storm Warning, Wind Chill Advisory, Wind Chill Watch, and Wind Chill Warning.</li>
+            <li>Program will now warn you if you attempt to switch to an offline radar.</li>
+            <li>Added SPC Storm Report display, press R while in the program to use.</li>
+        </ul>
+
+        <h2>Precipitation Types</h2>
+        <p>Internally, the program diagnoses 12 different precipitation types using <a href = 'https://doi.org/10.1175/WAF-D-20-0118.1'>a revised version of the Bourgouin technique (Birk et al. 2021)</a>, with additional freezing rain and snow subtypes added by me. Other algorithms will be added at a later time, such as <a href="http://employees.oneonta.edu/blechmjb/JBpages/M361/BUFKITlabs/Bourgouin/Bourgouin2000.pdf">the original Bourgouin technique developed in 2000</a>. Since viewing all 12 types can be confusing, RadarView is set by default to simplify this into a three- or four-type view. The simplifications are as follows:</p>
+        <table>
+            <tr>
+                <th>Twelve-type <br>[CTRL+2]</th>
+                <th>Four-type <br>[CTRL+4]</th>
+                <th>Three-type <br>[CTRL+3]</th>
+            </tr>
+            <tr>
+                <td>Rain</td>
+                <td>Rain</td>
+                <td>Rain</td>
+            </tr>
+            <tr>
+                <td>Freezing Rain (Elevated)</td>
+                <td>Freezing Rain</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Freezing Rain (Surface)</td>
+                <td>Freezing Rain</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Mixed Freezing Rain and Ice Pellets</td>
+                <td>Freezing Rain</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Ice Pellets</td>
+                <td>Ice Pellets</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Mixed Ice Pellets and Snow</td>
+                <td>Ice Pellets</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Mixed Rain and Ice Pellets</td>
+                <td>Ice Pellets</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Mixed Rain and Snow</td>
+                <td>Snow</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Mixed Freezing Rain and Snow</td>
+                <td>Freezing Rain</td>
+                <td>Wintry Mix</td>
+            </tr>
+            <tr>
+                <td>Wet Snow</td>
+                <td>Snow</td>
+                <td>Snow</td>
+            </tr>
+            <tr>
+                <td>Dry Snow</td>
+                <td>Snow</td>
+                <td>Snow</td>
+            </tr>
+            <tr>
+                <td>Very Dry Snow</td>
+                <td>Snow</td>
+                <td>Snow</td>
+            </tr>
+        </table>
+        <p>In the 3-type view, freezing rain, ice pellets, and any mixing of two or more precipitation types is considered to be a wintry mix.</p>
+        <p>In the 4-type view, the displayed precipitation type in the case of mixes is generally the most impactful type of precipitation contained in the mix. For example, in a freezing rain-ice pellet mix, the ice pellets will accumulate on the ground and the freezing rain will glue the pellets together into a glaze ice coating. Additionally, only the freezing rain will accumulate on power lines. Since the freezing rain is probably producing a higher impact than the ice pellets in this situation, RadarView's 4-type display shows this as freezing rain.</p>
+
+        <h2>Controls</h2>
+        <table>
+            <tr>
+                <th>Control</th>
+                <th>What it does</th>
+            </tr>
+            <tr>
+                <td>Mouse Left Click</td>
+                <td>If on a button, selects that radar site and shows its data</td>
+            </tr>
+            <tr>
+                <td>Mouse Dragging [Left Click]</td>
+                <td>Pans around the map.</td>
+            </tr>
+            <tr>
+                <td>Mouse Wheel Spinning</td>
+                <td>Zooms the map in and out.</td>
+            </tr>
+            <tr>
+                <td>CTRL+2</td>
+                <td>Sets the <b>Reflectivity + Precip Types</b> display to use 12 precipitation type categories.</td>
+            </tr>
+            <tr>
+                <td>CTRL+3</td>
+                <td>Sets the <b>Reflectivity + Precip Types</b> display to use 3 precipitation type categories.</td>
+            </tr>
+            <tr>
+                <td>CTRL+4</td>
+                <td>Sets the <b>Reflectivity + Precip Types</b> display to use 4 precipitation type categories.</td>
+            </tr>
+            <tr>
+                <td>A</td>
+                <td>Changes the length of the radar animation. Has no immediate effect if animation mode is turned off.</td>
+            </tr>
+            <tr>
+                <td>C</td>
+                <td>Toggles the visibility of cities.</td>
+            </tr>
+            <tr>
+                <td>F</td>
+                <td>Changes the field displayed (ex. from Reflectivity to Storm Relative Velocity).</td>
+            </tr>
+            <tr>
+                <td>H</td>
+                <td>Opens this page.</td>
+            </tr>
+            <tr>
+                <td>I</td>
+                <td>Toggles the inspect tool.</td>
+            </tr>
+            <tr>
+                <td>L</td>
+                <td>Toggles the low-filter on reflectivity scans.</td>
+            </tr>
+            <tr>
+                <td>R</td>
+                <td>Toggles visibility of <a href="https://www.spc.noaa.gov/climo/reports/today.html">SPC Storm Reports.</a></td>
+            </tr>
+            <tr>
+                <td>S</td>
+                <td>Toggles visibility of the <a href="https://www.spc.noaa.gov/products/outlook/day1otlk.html">SPC Day 1 Categorical Outlook.</a></td>
+            </tr>
+            <tr>
+                <td>V</td>
+                <td>Toggles visibility of NWS watches and warnings.</td>
+            </tr>
+            <tr>
+                <td>LEFT ARROW</td>
+                <td>Shows previous radar image. Does nothing if animation mode is turned off.</td>
+            </tr>
+            <tr>
+                <td>RIGHT ARROW</td>
+                <td>Shows next radar image. Does nothing if animation mode is turned off.</td>
+            </tr>
+            <tr>
+                <td>SPACE</td>
+                <td>Turns animation mode on.</td>
+            </tr>
+        </table>
+        <h2>Accessibility</h2>
+        <p>The default color tables have been designed intentionally to be usable for both fully color-sighted users and most colorblind users. I've used the <a href="https://pilestone.com/pages/color-blindness-simulator-1#">Pilestone Color Blindness Simulator</a> to guide development of the color tables, and they should work for users with Deutanopia (the most common form of red-green colorblindness), Protanopia (a less common form of red-green colorblindness), and Tritanopia (blue-yellow colorblindness). I have not yet been able to make them usable for users with Monochromacy (black-and-white vision), but I hope to do that at some point in the future.</p>
+        <p>Though I've my best on the others, I have not checked the default color table for the 12-ptype precipitation depiction</p>
+        <p>The velocity color table is currently not very good for those with Deutanopia or Protanopia. I will hopefully be soon fixing or working around this</p>
+
+        <h2>Products and How to Use Them</h2>
+
+        <h3>Base Reflectivity</h3>
+        <p>More complete description coming later. For now:</p>
+        <p>Reflectivity is a measure of how much of a radar signal is reflected back to the radar site. Higher reflectivity values usually signify heavier precipitation, and low values (≤20 dBZ for rain, ≤5 for snow) usually signify no precipitation. Radar displays often use cool colors to show light/no precipitation and warm colors to show heavy precipitation. Colors used in RadarView by default are as follows:</p>
+        
+        <table>
+            <tr>
+                <th>Color</th>
+                <th>Meaning (rain)</th>
+                <th>Meaning (snow)</th>
+            </tr>
+            <tr>
+                <td>Black/Gray</td>
+                <td>No rain</td>
+                <td>No snow</td>
+            </tr>
+            <tr>
+                <td>Dark Blue</td>
+                <td>No rain</td>
+                <td>Very light snow</td>
+            </tr>
+            <tr>
+                <td>Blue-Green</td>
+                <td>Very light rain</td>
+                <td>Light snow</td>
+            </tr>
+            <tr>
+                <td>Green</td>
+                <td>Light rain</td>
+                <td>Moderate snow</td>
+            </tr>
+            <tr>
+                <td>Yellow</td>
+                <td>Moderate rain</td>
+                <td>Heavy snow</td>
+            </tr>
+            <tr>
+                <td>Red</td>
+                <td>Heavy rain</td>
+                <td>Extremely heavy snow</td>
+            </tr>
+            <tr>
+                <td>Magenta</td>
+                <td>Extremely heavy rain, possibly hail</td>
+                <td>-</td>
+            </tr>
+        </table>
+
+        <h3>Base Velocity</h3>
+        <p>More complete description coming later. For now:</p>
+        <p>Doppler Velocity is a measure of how much the storm is moving toward or away from the radar site. Greens and Blues indicate motion toward the radar; Reds and Oranges indicate motion away.</p>
+
+        <h2>Known Issues</h2>
+        <ul>
+            <li>Differential Reflectivity scans are all sorts of messed up</li>
+            <li>Map "wobbles" a bit when panning</li>
+            <li>Large-scale warnings in some areas don't render in the program.</li>
+            <li>Large-scale warnings make the program significantly slower to render</li>
+            <li>Velocity scans sometimes have large sections of null data, which disrupts the storm-relative velocity computation</li>
+            <li>Dealiasing algorithm does not entirely work right</li>
+        </ul>
+        <h2>Future Features</h2>
+        <ul>
+            <li>Right-click RAP soundings</li>
+            <li>City markers for improved map readability. For example, a dot over Dallas, Texas reading "DALLAS".</li>
+            <li>Historical data display</li>
+            <li>mPING report display</li>
+            <li>Multiple-panel display modes</li>
+            <li>Custom color tables, possibly a GUI tool to assist non-programmers in making their own color tables</li>
+            <li>Better accessibility features, specifics to be figured out later</li>
+            <li>Possibly TDWRs</li>
+            <li>Possibly Canadian and UK radars</li>
+            <li>Possibly a beginner-friendly mode for non-meteorologists to use</li>
+        </ul>
+
+        <h2>Here's an image of a radar (it's testing if this works correctly)</h2>
+        <img src = 'radar.jpeg'/>
+    </body>
+</html>
