@@ -1640,6 +1640,9 @@ public class RadarPanel extends JComponent {
 	}
 
 	private static ArrayList<ArrayList<PointD>> getPolygons(File kml) {
+		if(kml == null) {
+			return new ArrayList<ArrayList<PointD>>();
+		}
 
 		Pattern p = Pattern.compile("<coordinates>.*?</coordinates>");
 
@@ -1682,7 +1685,10 @@ public class RadarPanel extends JComponent {
 	}
 
 	private static ArrayList<ArrayList<PointD>> getPolygons(File kml, int reduction) {
-
+		if(kml == null) {
+			return new ArrayList<ArrayList<PointD>>();
+		}
+		
 		Pattern p = Pattern.compile("<coordinates>.*?</coordinates>");
 
 		Matcher m = p.matcher(usingBufferedReader(kml));

@@ -1,11 +1,15 @@
 package com.ameliaWx.radarView.srtm;
 
-import com.ameliaWx.radarView.RadarView;
 import com.ameliaWx.srtmWrapper.SrtmModel;
 
 // wrapper for the SRTM wrapper, weird i know
 public class SrtmModel2 {
 	private short[][][][] data;
+	
+	private static long LOAD_TIMEOUT = 15000; // milliseconds
+	
+	LoadManagerThread loadManager;
+	LoadTimeoutThread loadTimeout;
 	
 	public static void main(String[] args) {
 		SrtmModel2 srtm = new SrtmModel2();
@@ -14,17 +18,108 @@ public class SrtmModel2 {
 		System.out.println(srtm.getElevation(33.01, -96.5));
 	}
 	
+	private SrtmModel srtm;
 	public SrtmModel2() {
 		data = new short[28][9][][];
 		
-		SrtmModel srtm = new SrtmModel(System.getProperty("user.home") + "/Documents/RadarView/data/temp/");
+		srtm = new SrtmModel(System.getProperty("user.home") + "/Documents/RadarView/data/temp/");
+		 
+		loadManager = new LoadManagerThread();
+		loadTimeout = new LoadTimeoutThread();
 		
-		for(int i = 0; i < data.length; i++) {
-			for(int j = 0; j < data[0].length; j++) {
-				data[i][j] = srtm.loadElevData(i + 1, j + 1);
+		loadManager.start();
+		loadTimeout.start();
+	}
+	
+	private class LoadManagerThread extends Thread {
+		public LoadManagerThread() {
+			super(new Runnable() {
+
+				@Override
+				public void run() {
+//					System.out.println("start load manager thread");
+					
+					LoadWorkerThread worker0 = new LoadWorkerThread(0);
+					LoadWorkerThread worker1 = new LoadWorkerThread(1);
+					LoadWorkerThread worker2 = new LoadWorkerThread(2);
+					LoadWorkerThread worker3 = new LoadWorkerThread(3);
+					
+					worker0.start();
+					worker1.start();
+					worker2.start();
+					worker3.start();
+					
+					try {
+						worker0.join();
+						worker1.join();
+						worker2.join();
+						worker3.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+//					System.out.println("finish load manager thread");
+				}
+			});
+		}
+	}
+	
+	// should work in quartets
+	private class LoadWorkerThread extends Thread {
+		public LoadWorkerThread(int id) {
+			super(new Runnable() {
 				
-				RadarView.loadWindow.setTitle("Initializing RadarView: Loading SRTM (" + String.format("%4.1f", 100*(9 * i + j)/(28.0 * 9.0)) + "%)...");
-			}
+				@Override
+				public void run() {
+//					System.out.println("start load worker thread " + id);
+					
+					for(int i = id; i < data.length; i += 4) {
+						for(int j = 0; j < data[0].length; j++) {
+							data[i][j] = srtm.loadElevData(i + 1, j + 1);
+						}
+					}
+				}
+			});
+		}
+	}
+	
+	private class LoadTimeoutThread extends Thread {
+		public LoadTimeoutThread() {
+			super(new Runnable() {
+
+				@SuppressWarnings("deprecation")
+				@Override
+				public void run() {
+//					System.out.println("start load timeout thread");
+					
+					try {
+						Thread.sleep(LOAD_TIMEOUT);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					System.out.println(loadManager.isAlive());
+					if(loadManager.isAlive()) {
+//						System.out.println("doing timeout process");
+						
+						loadManager.stop();
+
+						data = new short[28][9][2000][2000];
+						
+						for(int i = 0; i < 28; i++) {
+							for(int j = 0; j < 9; j++) {
+								for(int k = 0; k < 2000; k++) {
+									for(int l = 0; l < 2000; l++) {
+										data[i][j][k][l] = -1024;
+									}
+								}
+							}
+						}
+					} else {
+//						System.out.println("process done, no timeout required");
+					}
+				}
+			});
 		}
 	}
 	

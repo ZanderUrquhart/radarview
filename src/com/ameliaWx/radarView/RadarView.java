@@ -50,6 +50,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -154,6 +155,8 @@ public class RadarView extends JFrame {
 	public static boolean inspectToolActive = false;
 
 	public static boolean viewCities = true;
+	
+	public static boolean isWindows = false;
 
 	public static void main(String[] args) {
 //		try {
@@ -169,6 +172,15 @@ public class RadarView extends JFrame {
 				| UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
 		}
+		
+		String osName = System.getProperty("os.name");
+		
+		if(osName.contains("Windows")) {
+			isWindows = true;
+		}
+		
+		System.out.println(osName);
+		System.out.println(isWindows);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			@Override
@@ -2034,7 +2046,7 @@ public class RadarView extends JFrame {
 	private static void readConfigTxt() {
 		try {
 			Scanner sc = new Scanner(new File(dataFolder + "config.txt"));
-			sc.useDelimiter("\n");
+			sc.useDelimiter("\n|\r\n");
 
 			chosenRadar = sc.next();
 			homeLat = sc.nextDouble();
