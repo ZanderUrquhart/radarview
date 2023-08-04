@@ -258,7 +258,7 @@ public class RadarView extends JFrame {
 		radarLat = (centralLat = activeRadarSite.getSiteCoords().getX());
 		radarLon = (centralLon = activeRadarSite.getSiteCoords().getY());
 
-		loadWindow.setTitle("Initializing RadarView: Processing KMLs...");
+		loadWindow.setTitle("Initializing RadarView: Loading SPC Polygons...");
 		segmentStartTime = System.currentTimeMillis();
 
 		try {
@@ -1461,7 +1461,7 @@ public class RadarView extends JFrame {
 				break;
 			case KeyEvent.VK_S:
 				if (e.isControlDown()) {
-					displaySounding();
+					displaySounding(mx, my);
 				} else {
 					viewSpcOutlook = !viewSpcOutlook;
 					g.repaint();
@@ -1581,136 +1581,6 @@ public class RadarView extends JFrame {
 		@Override
 		public void keyReleased(KeyEvent e) {
 		}
-		
-		private void displaySounding() {
-			double westLon = centralLon - ((g.getWidth() - 200) / 2) / pixelsPerDegree;
-			double eastLon = centralLon + ((g.getWidth() - 200) / 2) / pixelsPerDegree;
-			double northLat = centralLat + ((g.getHeight()) / 2) / pixelsPerDegree;
-			double southLat = centralLat - ((g.getHeight()) / 2) / pixelsPerDegree;
-
-			double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, mx);
-			double lat = linScale(0, g.getHeight(), northLat, southLat, my);
-			
-			System.out.printf("display right click RAP sounding at [%7.4f, %7.4f]\n", lat, lon);
-
-			DateTime scanTime = radarData[chosenTimestep].getScanTime();
-
-			HashMap<NwpField, Float> sounding0 = null; // non-interpolated sounding before scan time
-			HashMap<NwpField, Float> soundingM = null; // interpolated sounding at scan time
-			HashMap<NwpField, Float> sounding1 = null; // non-interpolated sounding after scan time
-
-			DateTime soundingTime0 = null;
-			DateTime soundingTimeM = null;
-			DateTime soundingTime1 = null;
-
-			if (scanTime.isAfter(time1)) {
-				sounding0 = modelI1.getDataForSounding(time1, lat, lon);
-				soundingM = modelI1.getDataForSounding(scanTime, lat, lon);
-				sounding1 = modelI1.getDataForSounding(time2, lat, lon);
-
-				soundingTime0 = time1;
-				soundingTimeM = scanTime;
-				soundingTime1 = time2;
-			} else {
-				if (scanTime.isBefore(time0)) {
-					int confirm = JOptionPane.showConfirmDialog(null,
-							"Requesting sounding from before earliest downloaded RAP data. \nProceed and view earliest downloaded data?",
-							"Requested data not downloaded", JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE);
-
-					if (confirm == 0) {
-						sounding0 = modelI0.getDataForSounding(time0, lat, lon);
-						soundingM = modelI0.getDataForSounding(time0, lat, lon);
-						sounding1 = modelI0.getDataForSounding(time1, lat, lon);
-
-						soundingTime0 = time0;
-						soundingTimeM = time0;
-						soundingTime1 = time1;
-					} else {
-						return;
-					}
-				} else {
-					sounding0 = modelI0.getDataForSounding(time0, lat, lon);
-					soundingM = modelI0.getDataForSounding(scanTime, lat, lon);
-					sounding1 = modelI0.getDataForSounding(time1, lat, lon);
-
-					soundingTime0 = time0;
-					soundingTimeM = scanTime;
-					soundingTime1 = time1;
-				}
-			}
-
-			Sounding sounding0Obj = hashMapToNwpSounding(sounding0);
-			Sounding soundingMObj = hashMapToNwpSounding(soundingM);
-			Sounding sounding1Obj = hashMapToNwpSounding(sounding1);
-
-			// figure out wind offset angle
-			PointD dR1 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon, lat);
-			PointD dR2 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon + 0.01, lat);
-			PointD dR = PointD.subtract(dR2, dR1);
-			double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
-
-			new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj,
-					soundingTime1, lat, lon, windOffsetAngle, new RadarMapInset());
-		}
-
-		private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
-			float[] pressureLevels = new float[39];
-			float[] temperature = new float[39];
-			float[] dewpoint = new float[38];
-			float[] height = new float[39];
-			float[] uWind = new float[38];
-			float[] vWind = new float[38];
-			float[] wWind = new float[37];
-
-			NwpField[] fields = NwpField.values();
-
-//			System.out.println("VERTICAL VELOCITY");
-			for (int i = 0; i < 37; i++) {
-				pressureLevels[i] = 10000 + 2500 * i;
-
-				temperature[i] = hashMap.get(fields[188 - 5 * i]);
-
-				double relativeHumidity = hashMap.get(fields[189 - 5 * i]) / 100.0;
-				dewpoint[i] = (float) WeatherUtils.dewpoint(temperature[i], relativeHumidity);
-
-				height[i] = hashMap.get(fields[190 - 5 * i]);
-
-				uWind[i] = hashMap.get(fields[191 - 5 * i]);
-
-				vWind[i] = hashMap.get(fields[192 - 5 * i]);
-
-				wWind[i] = hashMap.get(fields[192 + 37 - i]);
-//				System.out.println((192 + 37 - i) + "\t" + wWind[i]);
-			}
-
-			pressureLevels[38] = hashMap.get(NwpField.PRES_SURF);
-			pressureLevels[37] = (float) WeatherUtils.pressureAtHeight(pressureLevels[38], 2);
-
-			temperature[38] = hashMap.get(NwpField.TMP_SURF);
-			temperature[37] = hashMap.get(NwpField.TMP_2M);
-			dewpoint[37] = hashMap.get(NwpField.DPT_2M);
-
-			height[38] = hashMap.get(NwpField.HGT_SURF);
-			height[37] = height[38] + 2;
-
-			uWind[37] = hashMap.get(NwpField.WIND_U_10M);
-			vWind[37] = hashMap.get(NwpField.WIND_V_10M);
-
-			for (int i = 0; i < 37; i++) {
-				if (pressureLevels[i] > pressureLevels[37]) {
-					pressureLevels[i] = pressureLevels[37];
-					temperature[i] = temperature[37];
-					dewpoint[i] = dewpoint[37];
-					height[i] = height[37];
-					uWind[i] = uWind[37];
-					vWind[i] = vWind[37];
-					wWind[i] = 0.0f;
-				}
-			}
-
-			return new Sounding(pressureLevels, temperature, dewpoint, height, uWind, vWind, wWind);
-		}
 	}
 
 	private static int mPressedX = -1;
@@ -1730,15 +1600,15 @@ public class RadarView extends JFrame {
 			int x = e.getX();
 			int y = e.getY();
 
-			double westLon = centralLon - ((g.getWidth() - 200) / 2) / pixelsPerDegree;
-			double eastLon = centralLon + ((g.getWidth() - 200) / 2) / pixelsPerDegree;
-			double northLat = centralLat + ((g.getHeight()) / 2) / pixelsPerDegree;
-			double southLat = centralLat - ((g.getHeight()) / 2) / pixelsPerDegree;
-
-			double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, x);
-			double lat = linScale(0, g.getHeight(), northLat, southLat, y);
-
 			if (SwingUtilities.isLeftMouseButton(e)) {
+				double westLon = centralLon - ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+				double eastLon = centralLon + ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+				double northLat = centralLat + ((g.getHeight()) / 2) / pixelsPerDegree;
+				double southLat = centralLat - ((g.getHeight()) / 2) / pixelsPerDegree;
+
+				double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, x);
+				double lat = linScale(0, g.getHeight(), northLat, southLat, y);
+				
 				double rLonTolerance = 18 / pixelsPerDegree;
 				double rLatTolerance = 8 / pixelsPerDegree;
 
@@ -1854,126 +1724,8 @@ public class RadarView extends JFrame {
 					}
 				}
 			} else if (SwingUtilities.isRightMouseButton(e)) {
-				System.out.printf("display right click RAP sounding at [%7.4f, %7.4f]\n", lat, lon);
-
-				DateTime scanTime = radarData[chosenTimestep].getScanTime();
-
-				HashMap<NwpField, Float> sounding0 = null; // non-interpolated sounding before scan time
-				HashMap<NwpField, Float> soundingM = null; // interpolated sounding at scan time
-				HashMap<NwpField, Float> sounding1 = null; // non-interpolated sounding after scan time
-
-				DateTime soundingTime0 = null;
-				DateTime soundingTimeM = null;
-				DateTime soundingTime1 = null;
-
-				if (scanTime.isAfter(time1)) {
-					sounding0 = modelI1.getDataForSounding(time1, lat, lon);
-					soundingM = modelI1.getDataForSounding(scanTime, lat, lon);
-					sounding1 = modelI1.getDataForSounding(time2, lat, lon);
-
-					soundingTime0 = time1;
-					soundingTimeM = scanTime;
-					soundingTime1 = time2;
-				} else {
-					if (scanTime.isBefore(time0)) {
-						int confirm = JOptionPane.showConfirmDialog(null,
-								"Requesting sounding from before earliest downloaded RAP data. \nProceed and view earliest downloaded data?",
-								"Requested data not downloaded", JOptionPane.YES_NO_OPTION,
-								JOptionPane.QUESTION_MESSAGE);
-
-						if (confirm == 0) {
-							sounding0 = modelI0.getDataForSounding(time0, lat, lon);
-							soundingM = modelI0.getDataForSounding(time0, lat, lon);
-							sounding1 = modelI0.getDataForSounding(time1, lat, lon);
-
-							soundingTime0 = time0;
-							soundingTimeM = time0;
-							soundingTime1 = time1;
-						} else {
-							return;
-						}
-					} else {
-						sounding0 = modelI0.getDataForSounding(time0, lat, lon);
-						soundingM = modelI0.getDataForSounding(scanTime, lat, lon);
-						sounding1 = modelI0.getDataForSounding(time1, lat, lon);
-
-						soundingTime0 = time0;
-						soundingTimeM = scanTime;
-						soundingTime1 = time1;
-					}
-				}
-
-				Sounding sounding0Obj = hashMapToNwpSounding(sounding0);
-				Sounding soundingMObj = hashMapToNwpSounding(soundingM);
-				Sounding sounding1Obj = hashMapToNwpSounding(sounding1);
-
-				// figure out wind offset angle
-				PointD dR1 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon, lat);
-				PointD dR2 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon + 0.01, lat);
-				PointD dR = PointD.subtract(dR2, dR1);
-				double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
-
-				new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj,
-						soundingTime1, lat, lon, windOffsetAngle, new RadarMapInset());
+				displaySounding(x, y);
 			}
-		}
-
-		private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
-			float[] pressureLevels = new float[39];
-			float[] temperature = new float[39];
-			float[] dewpoint = new float[38];
-			float[] height = new float[39];
-			float[] uWind = new float[38];
-			float[] vWind = new float[38];
-			float[] wWind = new float[37];
-
-			NwpField[] fields = NwpField.values();
-
-//			System.out.println("VERTICAL VELOCITY");
-			for (int i = 0; i < 37; i++) {
-				pressureLevels[i] = 10000 + 2500 * i;
-
-				temperature[i] = hashMap.get(fields[188 - 5 * i]);
-
-				double relativeHumidity = hashMap.get(fields[189 - 5 * i]) / 100.0;
-				dewpoint[i] = (float) WeatherUtils.dewpoint(temperature[i], relativeHumidity);
-
-				height[i] = hashMap.get(fields[190 - 5 * i]);
-
-				uWind[i] = hashMap.get(fields[191 - 5 * i]);
-
-				vWind[i] = hashMap.get(fields[192 - 5 * i]);
-
-				wWind[i] = hashMap.get(fields[192 + 37 - i]);
-//				System.out.println((192 + 37 - i) + "\t" + wWind[i]);
-			}
-
-			pressureLevels[38] = hashMap.get(NwpField.PRES_SURF);
-			pressureLevels[37] = (float) WeatherUtils.pressureAtHeight(pressureLevels[38], 2);
-
-			temperature[38] = hashMap.get(NwpField.TMP_SURF);
-			temperature[37] = hashMap.get(NwpField.TMP_2M);
-			dewpoint[37] = hashMap.get(NwpField.DPT_2M);
-
-			height[38] = hashMap.get(NwpField.HGT_SURF);
-			height[37] = height[38] + 2;
-
-			uWind[37] = hashMap.get(NwpField.WIND_U_10M);
-			vWind[37] = hashMap.get(NwpField.WIND_V_10M);
-
-			for (int i = 0; i < 37; i++) {
-				if (pressureLevels[i] > pressureLevels[37]) {
-					pressureLevels[i] = pressureLevels[37];
-					temperature[i] = temperature[37];
-					dewpoint[i] = dewpoint[37];
-					height[i] = height[37];
-					uWind[i] = uWind[37];
-					vWind[i] = vWind[37];
-					wWind[i] = 0.0f;
-				}
-			}
-
-			return new Sounding(pressureLevels, temperature, dewpoint, height, uWind, vWind, wWind);
 		}
 
 		@Override
@@ -2013,6 +1765,135 @@ public class RadarView extends JFrame {
 			// TODO Auto-generated method stub
 
 		}
+	}
+
+	private void displaySounding(int x, int y) {
+		double westLon = centralLon - ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+		double eastLon = centralLon + ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+		double northLat = centralLat + ((g.getHeight()) / 2) / pixelsPerDegree;
+		double southLat = centralLat - ((g.getHeight()) / 2) / pixelsPerDegree;
+
+		double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, x);
+		double lat = linScale(0, g.getHeight(), northLat, southLat, y);
+
+		System.out.printf("display right click RAP sounding at [%7.4f, %7.4f]\n", lat, lon);
+
+		DateTime scanTime = radarData[chosenTimestep].getScanTime();
+
+		HashMap<NwpField, Float> sounding0 = null; // non-interpolated sounding before scan time
+		HashMap<NwpField, Float> soundingM = null; // interpolated sounding at scan time
+		HashMap<NwpField, Float> sounding1 = null; // non-interpolated sounding after scan time
+
+		DateTime soundingTime0 = null;
+		DateTime soundingTimeM = null;
+		DateTime soundingTime1 = null;
+
+		if (scanTime.isAfter(time1)) {
+			sounding0 = modelI1.getDataForSounding(time1, lat, lon);
+			soundingM = modelI1.getDataForSounding(scanTime, lat, lon);
+			sounding1 = modelI1.getDataForSounding(time2, lat, lon);
+
+			soundingTime0 = time1;
+			soundingTimeM = scanTime;
+			soundingTime1 = time2;
+		} else {
+			if (scanTime.isBefore(time0)) {
+				int confirm = JOptionPane.showConfirmDialog(null,
+						"Requesting sounding from before earliest downloaded RAP data. \nProceed and view earliest downloaded data?",
+						"Requested data not downloaded", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+				if (confirm == 0) {
+					sounding0 = modelI0.getDataForSounding(time0, lat, lon);
+					soundingM = modelI0.getDataForSounding(time0, lat, lon);
+					sounding1 = modelI0.getDataForSounding(time1, lat, lon);
+
+					soundingTime0 = time0;
+					soundingTimeM = time0;
+					soundingTime1 = time1;
+				} else {
+					return;
+				}
+			} else {
+				sounding0 = modelI0.getDataForSounding(time0, lat, lon);
+				soundingM = modelI0.getDataForSounding(scanTime, lat, lon);
+				sounding1 = modelI0.getDataForSounding(time1, lat, lon);
+
+				soundingTime0 = time0;
+				soundingTimeM = scanTime;
+				soundingTime1 = time1;
+			}
+		}
+
+		Sounding sounding0Obj = hashMapToNwpSounding(sounding0);
+		Sounding soundingMObj = hashMapToNwpSounding(soundingM);
+		Sounding sounding1Obj = hashMapToNwpSounding(sounding1);
+
+		// figure out wind offset angle
+		PointD dR1 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon, lat);
+		PointD dR2 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon + 0.01, lat);
+		PointD dR = PointD.subtract(dR2, dR1);
+		double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
+
+		new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj,
+				soundingTime1, lat, lon, windOffsetAngle, new RadarMapInset());
+	}
+
+	private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
+		float[] pressureLevels = new float[39];
+		float[] temperature = new float[39];
+		float[] dewpoint = new float[38];
+		float[] height = new float[39];
+		float[] uWind = new float[38];
+		float[] vWind = new float[38];
+		float[] wWind = new float[37];
+
+		NwpField[] fields = NwpField.values();
+
+//		System.out.println("VERTICAL VELOCITY");
+		for (int i = 0; i < 37; i++) {
+			pressureLevels[i] = 10000 + 2500 * i;
+
+			temperature[i] = hashMap.get(fields[188 - 5 * i]);
+
+			double relativeHumidity = hashMap.get(fields[189 - 5 * i]) / 100.0;
+			dewpoint[i] = (float) WeatherUtils.dewpoint(temperature[i], relativeHumidity);
+
+			height[i] = hashMap.get(fields[190 - 5 * i]);
+
+			uWind[i] = hashMap.get(fields[191 - 5 * i]);
+
+			vWind[i] = hashMap.get(fields[192 - 5 * i]);
+
+			wWind[i] = hashMap.get(fields[192 + 37 - i]);
+//			System.out.println((192 + 37 - i) + "\t" + wWind[i]);
+		}
+
+		pressureLevels[38] = hashMap.get(NwpField.PRES_SURF);
+		pressureLevels[37] = (float) WeatherUtils.pressureAtHeight(pressureLevels[38], 2);
+
+		temperature[38] = hashMap.get(NwpField.TMP_SURF);
+		temperature[37] = hashMap.get(NwpField.TMP_2M);
+		dewpoint[37] = hashMap.get(NwpField.DPT_2M);
+
+		height[38] = hashMap.get(NwpField.HGT_SURF);
+		height[37] = height[38] + 2;
+
+		uWind[37] = hashMap.get(NwpField.WIND_U_10M);
+		vWind[37] = hashMap.get(NwpField.WIND_V_10M);
+
+		for (int i = 0; i < 37; i++) {
+			if (pressureLevels[i] > pressureLevels[37]) {
+				pressureLevels[i] = pressureLevels[37];
+				temperature[i] = temperature[37];
+				dewpoint[i] = dewpoint[37];
+				height[i] = height[37];
+				uWind[i] = uWind[37];
+				vWind[i] = vWind[37];
+				wWind[i] = 0.0f;
+			}
+		}
+
+		return new Sounding(pressureLevels, temperature, dewpoint, height, uWind, vWind, wWind);
 	}
 
 	private static class RVMouseMotionListener implements MouseMotionListener {
@@ -2998,6 +2879,205 @@ public class RadarView extends JFrame {
 		return reports;
 	}
 
+//	private Thread downloadModelDataThread;
+	public static boolean modelDataDownloaded = false;
+	public static boolean modelDataBroken = false;
+	private static DateTime timeLastDownloaded = new DateTime(1970, 1, 1, 0, 0, DateTimeZone.UTC);
+
+	public static RapModel model0;
+	public static DateTime time0;
+	public static RapModel model1;
+	public static DateTime time1;
+	public static RapModel model2;
+	public static DateTime time2;
+
+	public static RapInterpModel modelI0;
+	public static RapInterpModel modelI1;
+
+	public static String loadingMessage;
+
+	private static boolean modelDownloadMethodWorking = false;
+	public static void downloadModelData() {
+		if(modelDownloadMethodWorking) return;
+		modelDownloadMethodWorking = true;
+		
+		// https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2Frap.20230411&file=rap.t00z.awip32f00.grib2&var_DPT=on&var_HGT=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_2_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_surface=on
+
+		DateTime now = DateTime.now(DateTimeZone.UTC);
+
+//		System.out.println("RadarView.downloadModelData()");
+//		System.out.println(now);
+//		System.out.println(timeLastDownloaded);
+
+//		loadWindow.setTitle("Initializing RadarView: Loading SRTM...");
+
+		if (srtm == null) {
+			Runtime.getRuntime().gc();
+			long maxMemory = Runtime.getRuntime().maxMemory();
+			long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			System.out.println("Pre-SRTM:         " + String.format("%4.1f", 100.0 * usedMemory / maxMemory) + "%, "
+					+ convToGigaMega(usedMemory).trim() + ")");
+
+//			System.out.println(convToGigaMega(maxMemory));
+//			System.out.println(convToGigaMega(usedMemory));
+//			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
+//			System.out.println("%");
+
+			loadingMessage = "Loading SRTM Data...";
+			g.repaint();
+
+			int resDivider = 1;
+
+			if (maxMemory < 1.1 * 1024 * 1024 * 1024) {
+				resDivider = 4;
+			} else if (maxMemory < 2.1 * 1024 * 1024 * 1024) {
+				resDivider = 2;
+			}
+
+			System.out.println(maxMemory / 1024.0 / 1024.0 / 1024.0);
+			System.out.println("resDivider: " + resDivider);
+
+			srtm = new SrtmModel2(resDivider);
+
+			Runtime.getRuntime().gc();
+			maxMemory = Runtime.getRuntime().maxMemory();
+			usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			System.out.println("Post-SRTM:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory) + "%, "
+					+ convToGigaMega(usedMemory).trim() + ")");
+		}
+
+		System.out.println("now:\t" + now);
+		System.out.println("lastDL:\t" + timeLastDownloaded);
+		System.out.println("willDL:\t" + (now.getHourOfDay() != timeLastDownloaded.getHourOfDay()
+				|| now.getDayOfYear() != timeLastDownloaded.getDayOfYear()
+				|| now.getYear() != timeLastDownloaded.getYear()));
+
+		if (now.getHourOfDay() != timeLastDownloaded.getHourOfDay()
+				|| now.getDayOfYear() != timeLastDownloaded.getDayOfYear()
+				|| now.getYear() != timeLastDownloaded.getYear()) {
+			try {
+				modelDataDownloaded = false;
+				modelDataBroken = false;
+
+				DateTime modelInitTime = now.minusHours(2);
+				modelInitTime = modelInitTime.minusSeconds(modelInitTime.getSecondOfMinute());
+				modelInitTime = modelInitTime.minusMinutes(modelInitTime.getMinuteOfHour());
+
+				loadingMessage = "Downloading RAP Data (1/3)...";
+				g.repaint();
+
+				model0 = downloadRapModel(modelInitTime, 1);
+				time0 = modelInitTime.plusHours(1);
+
+				loadingMessage = "Downloading RAP Data (2/3)...";
+				g.repaint();
+
+				model1 = downloadRapModel(modelInitTime, 2);
+				time1 = modelInitTime.plusHours(2);
+
+				loadingMessage = "Downloading RAP Data (3/3)...";
+				g.repaint();
+
+				model2 = downloadRapModel(modelInitTime, 3);
+				time2 = modelInitTime.plusHours(3);
+
+				loadingMessage = "Preparing RAP data...";
+				g.repaint();
+
+				modelI0 = new RapInterpModel(model0, model1, time0, time1);
+				modelI1 = new RapInterpModel(model1, model2, time1, time2);
+
+				modelDataDownloaded = true;
+				timeLastDownloaded = now;
+
+				loadingMessage = "Data loading done!";
+				g.repaint();
+
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				loadingMessage = "";
+				g.repaint();
+			} catch (IOException e) {
+				e.printStackTrace();
+				modelDataBroken = true;
+				loadingMessage = "RAP Data not found!";
+				g.repaint();
+			}
+		}
+		
+		modelDownloadMethodWorking = false;
+	}
+
+	@SuppressWarnings("deprecation")
+	private static RapModel downloadRapModel(DateTime modelInitTime, int fH) throws IOException {
+		boolean dataValid = false;
+		RapModel model = null;
+
+		while (!dataValid) {
+			String url1 = "https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2F" + String.format(
+					"rap.%04d%02d%02d&file=rap.t%02dz.awip32f%02d.grib2&var_DPT=on&var_HGT=on&var_PRES=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&var_VVEL=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_475_mb=on&lev_450_mb=on&lev_425_mb=on&lev_400_mb=on&lev_375_mb=on&lev_350_mb=on&lev_325_mb=on&lev_300_mb=on&lev_275_mb=on&lev_250_mb=on&lev_225_mb=on&lev_200_mb=on&lev_175_mb=on&lev_150_mb=on&lev_125_mb=on&lev_100_mb=on&lev_75_mb=on&lev_50_mb=on&lev_surface=on",
+					modelInitTime.getYear(), modelInitTime.getMonthOfYear(), modelInitTime.getDayOfMonth(),
+					modelInitTime.getHourOfDay(), fH);
+			String file1 = String.format("rap-f%02d.grib2", fH);
+			System.out.println(url1);
+			downloadFile(url1, file1);
+			
+			model = new RapModel(NetcdfFile.open(dataFolder + file1));
+
+			new File(dataFolder + String.format("rap-f%02d.grib2", fH)).delete();
+			new File(dataFolder + String.format("rap-f%02d.grib2.gbx9", fH)).delete();
+			new File(dataFolder + String.format("rap-f%02d.grib2.ncx4", fH)).delete();
+
+			dataValid = testIfModelValid(model);
+		}
+
+		return model;
+	}
+
+	private static boolean testIfModelValid(RapModel model) {
+		HashMap<NwpField, Float> data = model.getData(0, 35, -98);
+
+		boolean allDataValid = true;
+
+		for (NwpField f : data.keySet()) {
+			float record = data.get(f);
+
+//			System.out.println(f + "\t" + record + "\t" + (record == -1024.0f && f != NwpField.TMP_SURF_2M_DIFF));
+
+			if (record == -1024.0f && f != NwpField.TMP_SURF_2M_DIFF) {
+				allDataValid = false;
+				return allDataValid;
+			}
+		}
+
+		return allDataValid;
+	}
+
+	private double vlcyPostProc(double data) {
+		return 0.5 * data - 64.5;
+	}
+
+	private static String convToGigaMega(long bytes) {
+		int b = (int) (bytes % 1024);
+		bytes = bytes >> 10;
+		int kiB = (int) (bytes % 1024);
+		bytes = bytes >> 10;
+		int miB = (int) (bytes % 1024);
+		bytes = bytes >> 10;
+		int giB = (int) (bytes % 1024);
+
+		return String.format("%4d GiB %4d MiB %4d KiB %4d B", giB, miB, kiB, b);
+	}
+
+	private static double linScale(double preMin, double preMax, double postMin, double postMax, double value) {
+		double slope = (postMax - postMin) / (preMax - preMin);
+
+		return slope * (value - preMin) + postMin;
+	}
+
 	private static List<String> listNexradFiles(String radarSite) throws IOException { // breaks if dir.list does not
 																						// update, work on exp
 		downloadFile("https://nomads.ncep.noaa.gov/pub/data/nccf/radar/nexrad_level2/" + radarSite + "/dir.list",
@@ -3087,217 +3167,6 @@ public class RadarView extends JFrame {
 
 	}
 
-//	private Thread downloadModelDataThread;
-	public static boolean modelDataDownloaded = false;
-	public static boolean modelDataBroken = false;
-	private static DateTime timeLastDownloaded = new DateTime(1970, 1, 1, 0, 0, DateTimeZone.UTC);
-
-	public static RapModel model0;
-	public static DateTime time0;
-	public static RapModel model1;
-	public static DateTime time1;
-	public static RapModel model2;
-	public static DateTime time2;
-
-	public static RapInterpModel modelI0;
-	public static RapInterpModel modelI1;
-
-	public static String loadingMessage;
-
-	@SuppressWarnings("deprecation")
-	public static void downloadModelData() {
-		// https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2Frap.20230411&file=rap.t00z.awip32f00.grib2&var_DPT=on&var_HGT=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_2_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_surface=on
-
-		DateTime now = DateTime.now(DateTimeZone.UTC);
-
-//		System.out.println("RadarView.downloadModelData()");
-//		System.out.println(now);
-//		System.out.println(timeLastDownloaded);
-
-//		loadWindow.setTitle("Initializing RadarView: Loading SRTM...");
-
-		if (srtm == null) {
-			Runtime.getRuntime().gc();
-			long maxMemory = Runtime.getRuntime().maxMemory();
-			long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-			System.out.println("Pre-SRTM:         " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-					+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-//			System.out.println(convToGigaMega(maxMemory));
-//			System.out.println(convToGigaMega(usedMemory));
-//			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
-//			System.out.println("%");
-
-			loadingMessage = "Loading SRTM Data...";
-			g.repaint();
-			
-			int resDivider = 1;
-			
-			if(maxMemory < 1.1 * 1024 * 1024 * 1024) {
-				resDivider = 4;
-			} else if(maxMemory < 2.1 * 1024 * 1024 * 1024) {
-				resDivider = 2;
-			}
-			
-			System.out.println(maxMemory/1024.0/1024.0/1024.0);
-			System.out.println("resDivider: " + resDivider);
-			
-			srtm = new SrtmModel2(resDivider);
-
-			Runtime.getRuntime().gc();
-			maxMemory = Runtime.getRuntime().maxMemory();
-			usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-			System.out.println("Post-SRTM:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-					+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-		}
-
-		if (now.getHourOfDay() != timeLastDownloaded.getHourOfDay()
-				|| now.getDayOfYear() != timeLastDownloaded.getDayOfYear()) {
-			try {
-				modelDataDownloaded = false;
-				modelDataBroken = false;
-
-				DateTime modelInitTime = now.minusHours(2);
-				modelInitTime = modelInitTime.minusSeconds(modelInitTime.getSecondOfMinute());
-				modelInitTime = modelInitTime.minusMinutes(modelInitTime.getMinuteOfHour());
-
-				Runtime.getRuntime().gc();
-				long maxMemory = Runtime.getRuntime().maxMemory();
-				long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 1-Pre:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Downloading RAP Data (1/3)...";
-				g.repaint();
-				String url0 = "https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2F" + String.format(
-						"rap.%04d%02d%02d&file=rap.t%02dz.awip32f%02d.grib2&var_DPT=on&var_HGT=on&var_PRES=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&var_VVEL=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_475_mb=on&lev_450_mb=on&lev_425_mb=on&lev_400_mb=on&lev_375_mb=on&lev_350_mb=on&lev_325_mb=on&lev_300_mb=on&lev_275_mb=on&lev_250_mb=on&lev_225_mb=on&lev_200_mb=on&lev_175_mb=on&lev_150_mb=on&lev_125_mb=on&lev_100_mb=on&lev_75_mb=on&lev_50_mb=on&lev_surface=on",
-						modelInitTime.getYear(), modelInitTime.getMonthOfYear(), modelInitTime.getDayOfMonth(),
-						modelInitTime.getHourOfDay(), 1);
-				System.out.println(url0);
-				downloadFile(url0, "rap-f01.grib2");
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 1-Mid:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Processing RAP Data (1/3)...";
-				model0 = new RapModel(NetcdfFile.open(dataFolder + "rap-f01.grib2"));
-				time0 = modelInitTime.plusHours(1);
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 1-Post:       " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 2-Pre:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-				loadingMessage = "Downloading RAP Data (2/3)...";
-				g.repaint();
-				String url1 = "https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2F" + String.format(
-						"rap.%04d%02d%02d&file=rap.t%02dz.awip32f%02d.grib2&var_DPT=on&var_HGT=on&var_PRES=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&var_VVEL=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_475_mb=on&lev_450_mb=on&lev_425_mb=on&lev_400_mb=on&lev_375_mb=on&lev_350_mb=on&lev_325_mb=on&lev_300_mb=on&lev_275_mb=on&lev_250_mb=on&lev_225_mb=on&lev_200_mb=on&lev_175_mb=on&lev_150_mb=on&lev_125_mb=on&lev_100_mb=on&lev_75_mb=on&lev_50_mb=on&lev_surface=on",
-						modelInitTime.getYear(), modelInitTime.getMonthOfYear(), modelInitTime.getDayOfMonth(),
-						modelInitTime.getHourOfDay(), 2);
-				System.out.println(url1);
-				downloadFile(url1, "rap-f02.grib2");
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 2-Mid:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Processing RAP Data (2/3)...";
-				model1 = new RapModel(NetcdfFile.open(dataFolder + "rap-f02.grib2"));
-				time1 = modelInitTime.plusHours(2);
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 2-Post:       " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 3-Pre:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Downloading RAP Data (3/3)...";
-				g.repaint();
-				String url2 = "https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2F" + String.format(
-						"rap.%04d%02d%02d&file=rap.t%02dz.awip32f%02d.grib2&var_DPT=on&var_HGT=on&var_PRES=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&var_VVEL=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_475_mb=on&lev_450_mb=on&lev_425_mb=on&lev_400_mb=on&lev_375_mb=on&lev_350_mb=on&lev_325_mb=on&lev_300_mb=on&lev_275_mb=on&lev_250_mb=on&lev_225_mb=on&lev_200_mb=on&lev_175_mb=on&lev_150_mb=on&lev_125_mb=on&lev_100_mb=on&lev_75_mb=on&lev_50_mb=on&lev_surface=on",
-						modelInitTime.getYear(), modelInitTime.getMonthOfYear(), modelInitTime.getDayOfMonth(),
-						modelInitTime.getHourOfDay(), 3);
-				System.out.println(url2);
-				downloadFile(url2, "rap-f03.grib2");
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 3-Mid:        " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Processing RAP Data (3/3)...";
-				model2 = new RapModel(NetcdfFile.open(dataFolder + "rap-f03.grib2"));
-				time2 = modelInitTime.plusHours(3);
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP 3-Post:       " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-				loadingMessage = "Preparing RAP data...";
-				g.repaint();
-				modelI0 = new RapInterpModel(model0, model1, time0, time1);
-				modelI1 = new RapInterpModel(model1, model2, time1, time2);
-
-				Runtime.getRuntime().gc();
-				maxMemory = Runtime.getRuntime().maxMemory();
-				usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				System.out.println("RAP Fin:          " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
-						+ "%, " + convToGigaMega(usedMemory).trim() + ")");
-
-//				System.out.println(modelI0.getPrecipitationType(time1, 47.505129578564706, -111.30034270721687));
-//				System.exit(0);
-
-				new File(dataFolder + "rap-f01.grib2").delete();
-				new File(dataFolder + "rap-f01.grib2.gbx9").delete();
-				new File(dataFolder + "rap-f01.grib2.ncx4").delete();
-				new File(dataFolder + "rap-f02.grib2").delete();
-				new File(dataFolder + "rap-f02.grib2.gbx9").delete();
-				new File(dataFolder + "rap-f02.grib2.ncx4").delete();
-				new File(dataFolder + "rap-f03.grib2").delete();
-				new File(dataFolder + "rap-f03.grib2.gbx9").delete();
-				new File(dataFolder + "rap-f03.grib2.ncx4").delete();
-
-				modelDataDownloaded = true;
-				timeLastDownloaded = now;
-
-				loadingMessage = "Data loading done!";
-
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-				loadingMessage = "";
-				g.repaint();
-			} catch (IOException e) {
-				e.printStackTrace();
-				modelDataBroken = true;
-				loadingMessage = "RAP Data not found!";
-				g.repaint();
-			}
-		}
-	}
-
 	public static void downloadFile(String url, String fileName) throws IOException {
 //		System.out.println("Downloading from: " + url);
 		URL dataURL = new URL(url);
@@ -3320,28 +3189,6 @@ public class RadarView extends JFrame {
 		os.close();
 	}
 
-	private double vlcyPostProc(double data) {
-		return 0.5 * data - 64.5;
-	}
-
-	private static String convToGigaMega(long bytes) {
-		int b = (int) (bytes % 1024);
-		bytes = bytes >> 10;
-		int kiB = (int) (bytes % 1024);
-		bytes = bytes >> 10;
-		int miB = (int) (bytes % 1024);
-		bytes = bytes >> 10;
-		int giB = (int) (bytes % 1024);
-
-		return String.format("%4d GiB %4d MiB %4d KiB %4d B", giB, miB, kiB, b);
-	}
-
-	private static double linScale(double preMin, double preMax, double postMin, double postMax, double value) {
-		double slope = (postMax - postMin) / (preMax - preMin);
-
-		return slope * (value - preMin) + postMin;
-	}
-
 	private static void loadRadarSites() {
 		TsvParserSettings settings = new TsvParserSettings();
 		// the file used in the example uses '\n' as the line separator sequence.
@@ -3359,7 +3206,7 @@ public class RadarView extends JFrame {
 
 		for (int i = 0; i < allRows.size(); i++) {
 			String[] row = allRows.get(i);
-			
+
 			String code = row[0];
 			String city = row[1];
 
@@ -3370,54 +3217,6 @@ public class RadarView extends JFrame {
 
 			radarSites.add(r);
 			radarCodes.add(code);
-		}    
-	}
-
-	@SuppressWarnings("unused")
-	private static void loadRadarSitesOld() {
-		try {
-			Scanner sc = new Scanner(RadarPanel.loadResourceAsFile("res/radarSites.csv"));
-
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine();
-
-				if (line.length() > 0 && line.charAt(0) != ';') {
-					Scanner lineSc = new Scanner(line);
-					lineSc.useDelimiter(";");
-
-					while (lineSc.hasNext()) {
-						String code = lineSc.next().trim();
-						String city = lineSc.next().trim();
-
-						String lat = "-999";
-						String lon = "-999";
-						if (lineSc.hasNext()) {
-							lat = lineSc.next().trim();
-							if (lat.length() == 0)
-								lat = "-999";
-
-							if (lineSc.hasNext()) {
-								lon = lineSc.next().trim();
-							}
-						}
-
-						RadarSite r = new RadarSite(code, city, new PointD(Double.valueOf(lat), Double.valueOf(lon)));
-
-						radarSites.add(r);
-						radarCodes.add(code);
-					}
-
-					lineSc.close();
-				}
-			}
-
-			Collections.reverse(radarSites);
-			Collections.reverse(radarCodes);
-
-			sc.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.err.println("ERROR: Radar Sites files cannot be found!");
 		}
 	}
 
@@ -3467,62 +3266,8 @@ public class RadarView extends JFrame {
 
 			cities.add(city);
 		}
-	}
 
-	@SuppressWarnings("unused")
-	private static void loadCitiesLegacy() {
-		try {
-			Scanner sc = new Scanner(RadarPanel.loadResourceAsFile("res/usCities.csv"));
-
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine();
-
-				String[] tokens = line.split(",");
-
-//				System.out.println(Arrays.toString(tokens));
-
-				City city = new City(tokens[0], Double.valueOf(tokens[1]), Double.valueOf(tokens[2]),
-						Integer.valueOf(tokens[3]));
-
-				double closestLargerCityDis = 10000;
-				int closestLargerCityPop = 0;
-				if (cities == null) {
-					city.setProminence(100);
-				} else {
-					for (City c : cities) {
-						double cityDis = Math.hypot(city.getLatitude() - c.getLatitude(),
-								city.getLongitude() - c.getLongitude());
-
-						if (cityDis < closestLargerCityDis) {
-							closestLargerCityDis = cityDis;
-							closestLargerCityPop = c.getPopulation();
-						}
-					}
-
-					double prominence = (double) city.getPopulation() * Math.log10(city.getPopulation())
-							/ closestLargerCityPop * closestLargerCityDis;
-
-					// special handling for weird okc and norman prominence ratings
-					if (city.getLatitude() > 35 && city.getLatitude() < 36 && city.getLongitude() > -98
-							&& city.getLongitude() < -97) {
-						if ("Norman".equals(city.getName()) || "Oklahoma City".equals(city.getName())) {
-							prominence *= 2;
-						}
-					}
-
-					city.setProminence(prominence);
-				}
-
-				cities.add(city);
-			}
-
-			Collections.reverse(cities);
-
-			sc.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.err.println("ERROR: City file cannot be found!");
-		}
+		Collections.reverse(cities);
 	}
 
 	private void openHelpPage() {
