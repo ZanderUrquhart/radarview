@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -22,6 +23,11 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
+
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
+import com.univocity.parsers.csv.CsvWriter;
+import com.univocity.parsers.csv.CsvWriterSettings;
 
 public class RadarPanel extends JComponent {
 	/**
@@ -42,30 +48,74 @@ public class RadarPanel extends JComponent {
 //	private static ArrayList<ArrayList<PointD>> lakeLavon;
 //	private static ArrayList<ArrayList<PointD>> countryBorders;
 
+	private static final boolean useKml = false;
+	
 	static {
-		File countyBordersKML = loadResourceAsFile("res/usCounties.kml");
-		File stateBordersKML = loadResourceAsFile("res/usStates.kml");
-		File interstatesKML = loadResourceAsFile("res/wms.kml");
-		File majorRoadsKML = loadResourceAsFile("res/roadtrl020.kml");
-		File estadosKML = loadResourceAsFile("res/estados.kml");
-		File canadianProvincesKML = loadResourceAsFile("res/canada-provinces.kml");
-		File canadianProvincesSubdKML = loadResourceAsFile("res/canada-admin-subd.kml");
-//		File metroAreasKML = loadResourceAsFile("res/cb_2018_us_ua10_500k.kml");
-//		File ouCampusKML = loadResourceAsFile("res/ouCampus.kml");
-//		File lakeLavonKML = loadResourceAsFile("res/lakeLavon.kml");
-//		File countryBordersKML = loadResourceAsFile("res/countries_world.kml");
-
-		countyBorders = getPolygons(countyBordersKML);
-		stateBorders = getPolygons(stateBordersKML);
-		interstates = getPolygons(interstatesKML);
-		majorRoads = getPolygons(majorRoadsKML);
-		estados = getPolygons(estadosKML);
-		canadianProvinces = getPolygons(canadianProvincesKML, 10);
-		canadianProvincesSubd = getPolygons(canadianProvincesSubdKML);
-//		metroAreas = getPolygons(metroAreasKML);
-//		ouCampus = getPolygons(ouCampusKML);
-//		lakeLavon = getPolygons(lakeLavonKML);
-//		countryBorders = getPolygons(countryBordersKML);
+		if(useKml) {
+			RadarView.loadWindow.setTitle("Initializing RadarView: Loading KMLs into memory...");
+			File countyBordersKML = loadResourceAsFile("res/usCounties.kml");
+			File stateBordersKML = loadResourceAsFile("res/usStates.kml");
+			File interstatesKML = loadResourceAsFile("res/wms.kml");
+			File majorRoadsKML = loadResourceAsFile("res/roadtrl020.kml");
+			File estadosKML = loadResourceAsFile("res/estados.kml");
+			File canadianProvincesKML = loadResourceAsFile("res/canada-provinces.kml");
+			File canadianProvincesSubdKML = loadResourceAsFile("res/canada-admin-subd.kml");
+	//		File metroAreasKML = loadResourceAsFile("res/cb_2018_us_ua10_500k.kml");
+	//		File ouCampusKML = loadResourceAsFile("res/ouCampus.kml");
+	//		File lakeLavonKML = loadResourceAsFile("res/lakeLavon.kml");
+	//		File countryBordersKML = loadResourceAsFile("res/countries_world.kml");
+	
+			RadarView.loadWindow.setTitle("Initializing RadarView: Processing KMLs...");
+			countyBorders = getPolygons(countyBordersKML);
+			stateBorders = getPolygons(stateBordersKML);
+			interstates = getPolygons(interstatesKML);
+			majorRoads = getPolygons(majorRoadsKML);
+			estados = getPolygons(estadosKML);
+			canadianProvinces = getPolygons(canadianProvincesKML, 10);
+			canadianProvincesSubd = getPolygons(canadianProvincesSubdKML);
+	//		metroAreas = getPolygons(metroAreasKML);
+	//		ouCampus = getPolygons(ouCampusKML);
+	//		lakeLavon = getPolygons(lakeLavonKML);
+	//		countryBorders = getPolygons(countryBordersKML);
+			
+//			polygonArrayToCsv(countyBorders, "usCounties");
+//			polygonArrayToCsv(stateBorders, "usStates");
+//			polygonArrayToCsv(interstates, "usInterstates");
+//			polygonArrayToCsv(majorRoads, "usMajorRoads");
+//			polygonArrayToCsv(estados, "mxEstados");
+//			polygonArrayToCsv(canadianProvinces, "caProvinces");
+//			polygonArrayToCsv(canadianProvincesSubd, "caAdminSubd");
+		} else {
+			RadarView.loadWindow.setTitle("Initializing RadarView: Loading Polygons into memory...");
+			
+			File countyBordersPoly = loadResourceAsFile("res/usCounties.poly");
+			File stateBordersPoly = loadResourceAsFile("res/usStates.poly");
+			File interstatesPoly = loadResourceAsFile("res/usInterstates.poly");
+			File majorRoadsPoly = loadResourceAsFile("res/usMajorRoads.poly");
+			File estadosPoly = loadResourceAsFile("res/mxEstados.poly");
+			File canadianProvincesPoly = loadResourceAsFile("res/caProvinces.poly");
+			File canadianProvincesSubdPoly = loadResourceAsFile("res/caAdminSubd.poly");
+			
+			RadarView.loadWindow.setTitle("Initializing RadarView: Loading Polygon Metadata into memory...");
+			
+			File countyBordersPolyMeta = loadResourceAsFile("res/usCounties.poly.meta");
+			File stateBordersPolyMeta = loadResourceAsFile("res/usStates.poly.meta");
+			File interstatesPolyMeta = loadResourceAsFile("res/usInterstates.poly.meta");
+			File majorRoadsPolyMeta = loadResourceAsFile("res/usMajorRoads.poly.meta");
+			File estadosPolyMeta = loadResourceAsFile("res/mxEstados.poly.meta");
+			File canadianProvincesPolyMeta = loadResourceAsFile("res/caProvinces.poly.meta");
+			File canadianProvincesSubdPolyMeta = loadResourceAsFile("res/caAdminSubd.poly.meta");
+			
+			RadarView.loadWindow.setTitle("Initializing RadarView: Processing Polygons...");
+			
+			countyBorders = getPolygons(countyBordersPoly, countyBordersPolyMeta);
+			stateBorders = getPolygons(stateBordersPoly, stateBordersPolyMeta);
+			interstates = getPolygons(interstatesPoly, interstatesPolyMeta);
+			majorRoads = getPolygons(majorRoadsPoly, majorRoadsPolyMeta);
+			estados = getPolygons(estadosPoly, estadosPolyMeta);
+			canadianProvinces = getPolygons(canadianProvincesPoly, canadianProvincesPolyMeta);
+			canadianProvincesSubd = getPolygons(canadianProvincesSubdPoly, canadianProvincesSubdPolyMeta);
+		}
 	}
 
 	public Field activeField;
@@ -1684,6 +1734,42 @@ public class RadarPanel extends JComponent {
 		return polygons;
 	}
 
+	private static ArrayList<ArrayList<PointD>> getPolygons(File poly, File meta) {
+		CsvParserSettings settings = new CsvParserSettings();
+		settings.getFormat().setLineSeparator("\n");
+		
+		// creates a CSV parser
+		CsvParser parser = new CsvParser(settings);
+
+		// parses all rows in one go.
+		List<String[]> polyRows = parser.parseAll(poly);
+		List<String[]> metaRows = parser.parseAll(meta);
+		
+		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		
+		ArrayList<PointD> polygon = new ArrayList<>();
+		int polygonId = 0;
+		int polygonSize = Integer.valueOf(metaRows.get(polygonId)[0]);
+		
+		for(int i = 0; i < polyRows.size(); i++) {
+			if(polygon.size() >= polygonSize) {
+				polygonId++;
+				polygonSize = Integer.valueOf(metaRows.get(polygonId)[0]);
+				
+				polygons.add(polygon);
+				polygon = new ArrayList<>();
+			}
+			
+			String[] row = polyRows.get(i);
+			PointD point = new PointD(Double.valueOf(row[0]), Double.valueOf(row[1]));
+			polygon.add(point);
+			
+//			System.out.printf("%6d\t%6d\t%6d\t%6d\t" + poly.getName() + "\n", i, polyRows.size(), polygon.size(), polygonSize);
+		}
+		
+		return polygons;
+	}
+
 	private static ArrayList<ArrayList<PointD>> getPolygons(File kml, int reduction) {
 		if(kml == null) {
 			return new ArrayList<ArrayList<PointD>>();
@@ -1780,5 +1866,35 @@ public class RadarPanel extends JComponent {
 			e.printStackTrace();
 		}
 		return contentBuilder.toString();
+	}
+	
+	@SuppressWarnings("unused")
+	private static void polygonArrayToCsv(ArrayList<ArrayList<PointD>> polygons, String fileName) {
+		List<String[]> polygonsCsv = new ArrayList<>();
+		List<String[]> polygonsCsvMeta = new ArrayList<>();
+		
+		for(int i = 0; i < polygons.size(); i++) {
+			ArrayList<PointD> polygon = polygons.get(i);
+			
+			int polygonSize = polygon.size();
+			
+			String[] metaRow = new String[] { String.valueOf(polygonSize) };
+			polygonsCsvMeta.add(metaRow);
+			
+			for(int j = 0; j < polygon.size(); j++) {
+				String[] row = new String[] { String.valueOf(polygon.get(j).getX()), String.valueOf(polygon.get(j).getY()) };
+				polygonsCsv.add(row);
+			}
+		}
+		
+	    CsvWriter writer = new CsvWriter(new File(fileName + ".poly"), new CsvWriterSettings());
+
+	    // Here we just tell the writer to write everything and close the given output Writer instance.
+	    writer.writeStringRowsAndClose(polygonsCsv);
+		
+	    CsvWriter writerMeta = new CsvWriter(new File(fileName + ".poly.meta"), new CsvWriterSettings());
+
+	    // Here we just tell the writer to write everything and close the given output Writer instance.
+	    writerMeta.writeStringRowsAndClose(polygonsCsvMeta);
 	}
 }

@@ -18,9 +18,17 @@ public class SrtmModel2 {
 		System.out.println(srtm.getElevation(33.01, -96.5));
 	}
 	
+	private int resDivider = 1;
+	
 	private SrtmModel srtm;
+	
 	public SrtmModel2() {
+		this(1);
+	}
+	
+	public SrtmModel2(int resDivider) {
 		data = new short[28][9][][];
+		this.resDivider = resDivider;
 		
 		srtm = new SrtmModel(System.getProperty("user.home") + "/Documents/RadarView/data/temp/");
 		 
@@ -75,7 +83,7 @@ public class SrtmModel2 {
 					
 					for(int i = id; i < data.length; i += 4) {
 						for(int j = 0; j < data[0].length; j++) {
-							data[i][j] = srtm.loadElevData(i + 1, j + 1);
+							data[i][j] = srtm.loadElevData(i + 1, j + 1, resDivider);
 						}
 					}
 				}
@@ -142,6 +150,6 @@ public class SrtmModel2 {
 		int k = x % 2000;
 		int l = y % 2000;
 		
-		return data[i][j][k][l];
+		return data[i][j][k/resDivider][l/resDivider];
 	}
 }

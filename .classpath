@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="/home/a-urq/eclipse-workspace/jarLibraries/commons-io-2.7.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/SRTMWrapper"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Sounding Viewer"/>
+	<classpathentry kind="lib" path="/home/a-urq/eclipse-workspace/jarLibraries/univocity-parsers-2.8.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
