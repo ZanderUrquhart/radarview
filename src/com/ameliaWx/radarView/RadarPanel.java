@@ -1437,6 +1437,7 @@ public class RadarPanel extends JComponent {
 	}
 	
 	public void blankOutImages() {
+		if(imagesVh == null) return;
 		for(int i = 0; i < imagesVh.length; i++) {
 			imagesVh[i][0] = BLANK_IMAGE;
 			imagesHi[i][0] = BLANK_IMAGE;

@@ -1778,7 +1778,14 @@ public class RadarView extends JFrame {
 
 		System.out.printf("display right click RAP sounding at [%7.4f, %7.4f]\n", lat, lon);
 
-		DateTime scanTime = radarData[chosenTimestep].getScanTime();
+		DateTime scanTime = DateTime.now(DateTimeZone.UTC);
+		if(radarData != null) {
+			if(radarData.length > chosenTimestep) {
+				if(radarData[chosenTimestep] != null) {
+					scanTime = radarData[chosenTimestep].getScanTime();
+				}
+			}
+		}
 
 		HashMap<NwpField, Float> sounding0 = null; // non-interpolated sounding before scan time
 		HashMap<NwpField, Float> soundingM = null; // interpolated sounding at scan time
@@ -1787,6 +1794,11 @@ public class RadarView extends JFrame {
 		DateTime soundingTime0 = null;
 		DateTime soundingTimeM = null;
 		DateTime soundingTime1 = null;
+		
+		if(!modelDataDownloaded) {
+			JOptionPane.showMessageDialog(null, "RAP data still downloading. Try clicking again when the downloading finishes.");
+			return;
+		}
 
 		if (scanTime.isAfter(time1)) {
 			sounding0 = modelI1.getDataForSounding(time1, lat, lon);
@@ -2506,6 +2518,15 @@ public class RadarView extends JFrame {
 		cleanUpWatches();
 	}
 
+	private static void getSpcSevereWatches() throws IOException {
+		downloadFile("https://www.spc.noaa.gov/products/watch/ActiveWW.kmz", "temp/activeWW.kmz");
+
+		readUsingZipFile(dataFolder + "temp/activeWW.kmz", dataFolder + "temp/activeWW/");
+		watchPolygons = getPolygonsWatches(new File(dataFolder + "temp/activeWW/activeWW.kml"));
+		
+		watchParallelograms = getPolygonsWarnings(new File(dataFolder + "temp/warnings.kml"));
+	}
+
 	private static void getSevereWarnings() throws IOException {
 		downloadFile("https://www.weather.gov/source/crh/shapefiles/warnings.kml", "temp/warnings.kml");
 		warningPolygons = getPolygonsWarnings(new File(dataFolder + "temp/warnings.kml"));
@@ -2699,6 +2720,69 @@ public class RadarView extends JFrame {
 
 //		System.out.println(watchPolygons.size());
 //		System.out.println(watchPolygons_.size());
+	}
+
+	public static ArrayList<ArrayList<PointD>> watchParallelograms;
+	public static ArrayList<String> spcWatchNames = new ArrayList<>();
+
+	private static ArrayList<ArrayList<PointD>> getParallelogramsWatches(File kml) {
+		watchNames = new ArrayList<>();
+		Pattern p = Pattern.compile("</styleUrl><Polygon>.*?</coordinates>");
+
+		Matcher m = p.matcher(usingBufferedReader(kml));
+
+		Pattern p1 = Pattern.compile("</Polygon>.*?</name>");
+
+		Matcher m1 = p1.matcher(usingBufferedReader(kml));
+
+		ArrayList<String> coordList = new ArrayList<>();
+
+		while (m.find()) {
+			// System.out.println(m.start() + " " + m.end() + " " + m.group().substring(13,
+			// m.group().length() - 14));
+			String coords = m.group().substring(11 + 16 + 13 + 9 + 13, m.group().length() - 14);
+//			System.out.println(coords);
+			if ('y' != coords.charAt(0)) {
+				coordList.add(coords);
+			}
+		}
+
+		while (m1.find()) {
+			// System.out.println(m.start() + " " + m.end() + " " + m.group().substring(13,
+			// m.group().length() - 14));
+			String name = m1.group().substring(17, m1.group().length() - 7);
+			if (' ' == name.charAt(0)) {
+//				System.out.println(name.substring(0));
+				watchNames.add(name.substring(1));
+			}
+		}
+
+		System.out.println(coordList.size());
+
+		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+
+		for (String coords : coordList) {
+			Scanner sc = new Scanner(coords);
+			sc.useDelimiter(" ");
+
+			ArrayList<PointD> polygon = new ArrayList<>();
+
+			while (sc.hasNext()) {
+				String s = sc.next();
+				// System.out.println(s);
+
+				String[] pp = s.split(",");
+
+				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+			}
+
+			sc.close();
+			polygons.add(polygon);
+		}
+
+		System.out.println(polygons.size());
+
+		return polygons;
 	}
 
 	public static ArrayList<ArrayList<PointD>> warningPolygons;
