@@ -104,6 +104,7 @@ public class RadarView extends JFrame {
 	public static SrtmModel2 srtm;
 
 	public static String chosenRadar = "KTLX";
+	public static String defaultRadar = "KTLX";
 	public static ArrayList<RadarSite> radarSites = new ArrayList<>();
 	public static ArrayList<String> radarCodes = new ArrayList<>();
 
@@ -143,7 +144,7 @@ public class RadarView extends JFrame {
 
 	public static double centralLat = 33;
 	public static double centralLon = -96.5;
-	public static double pixelsPerDegree = 200.0;
+	public static double pixelsPerDegree = 200.0 * Math.pow(0.9, -7);
 
 	public static double radarLat = 32.57322872964769; // falls back to the KFWS site in case of catastrophic errors
 	public static double radarLon = -97.30326251795913;
@@ -257,6 +258,11 @@ public class RadarView extends JFrame {
 
 		radarLat = (centralLat = activeRadarSite.getSiteCoords().getX());
 		radarLon = (centralLon = activeRadarSite.getSiteCoords().getY());
+		
+		if(homeLat != -1024 && homeLon != -1024) {
+			centralLat = homeLat;
+			centralLon = homeLon;
+		}
 
 		loadWindow.setTitle("Initializing RadarView: Loading SPC Polygons...");
 		segmentStartTime = System.currentTimeMillis();
@@ -1274,7 +1280,7 @@ public class RadarView extends JFrame {
 //			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
 //			System.out.println("%");
 
-			instance.setTitle("RadarView Beta Version 4-dev (" + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
+			instance.setTitle("RadarView Beta Version 4 (" + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
 					+ "%, " + convToGigaMega(usedMemory).trim() + ")");
 //			long paintEndTime = System.currentTimeMillis();
 //			System.out.println("paint exec time: " + (paintEndTime - paintStartTime) + " ms");
@@ -1426,7 +1432,12 @@ public class RadarView extends JFrame {
 				}
 				break;
 			case KeyEvent.VK_H:
-				openHelpPage();
+				if (e.isControlDown()) {
+					chooseHomeLocation();
+					g.repaint();
+				} else {
+					openHelpPage();
+				}
 				break;
 			case KeyEvent.VK_I:
 				inspectToolActive = !inspectToolActive;
@@ -1456,14 +1467,24 @@ public class RadarView extends JFrame {
 
 				break;
 			case KeyEvent.VK_R:
-				viewSpcStormReports = !viewSpcStormReports;
-				g.repaint();
+				if (e.isControlDown()) {
+					chooseDefaultRadarSite();
+				} else {
+					viewSpcStormReports = !viewSpcStormReports;
+					g.repaint();
+				}
 				break;
 			case KeyEvent.VK_S:
 				if (e.isControlDown()) {
 					displaySounding(mx, my);
 				} else {
 					viewSpcOutlook = !viewSpcOutlook;
+					g.repaint();
+				}
+				break;
+			case KeyEvent.VK_T:
+				if (e.isControlDown()) {
+					chooseTimeZone();
 					g.repaint();
 				}
 				break;
@@ -1608,7 +1629,7 @@ public class RadarView extends JFrame {
 
 				double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, x);
 				double lat = linScale(0, g.getHeight(), northLat, southLat, y);
-				
+
 				double rLonTolerance = 18 / pixelsPerDegree;
 				double rLatTolerance = 8 / pixelsPerDegree;
 
@@ -1779,9 +1800,9 @@ public class RadarView extends JFrame {
 		System.out.printf("display right click RAP sounding at [%7.4f, %7.4f]\n", lat, lon);
 
 		DateTime scanTime = DateTime.now(DateTimeZone.UTC);
-		if(radarData != null) {
-			if(radarData.length > chosenTimestep) {
-				if(radarData[chosenTimestep] != null) {
+		if (radarData != null) {
+			if (radarData.length > chosenTimestep) {
+				if (radarData[chosenTimestep] != null) {
 					scanTime = radarData[chosenTimestep].getScanTime();
 				}
 			}
@@ -1794,9 +1815,10 @@ public class RadarView extends JFrame {
 		DateTime soundingTime0 = null;
 		DateTime soundingTimeM = null;
 		DateTime soundingTime1 = null;
-		
-		if(!modelDataDownloaded) {
-			JOptionPane.showMessageDialog(null, "RAP data still downloading. Try clicking again when the downloading finishes.");
+
+		if (!modelDataDownloaded) {
+			JOptionPane.showMessageDialog(null,
+					"RAP data still downloading. Try clicking again when the downloading finishes.");
 			return;
 		}
 
@@ -1846,8 +1868,8 @@ public class RadarView extends JFrame {
 		PointD dR = PointD.subtract(dR2, dR1);
 		double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
 
-		new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj,
-				soundingTime1, lat, lon, windOffsetAngle, new RadarMapInset());
+		new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj, soundingTime1,
+				lat, lon, windOffsetAngle, new RadarMapInset());
 	}
 
 	private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
@@ -2025,7 +2047,7 @@ public class RadarView extends JFrame {
 
 	private static final String[] timeZones = { "Hawaii Time Zone", "Aleutian Time Zone", "Alaska Time Zone",
 			"Pacific Time Zone", "Mountain Time Zone", "Mountain Time Zone (Arizona)", "Central Time Zone",
-			"Eastern Time Zone", "Atlantic Time Zone", "Chamorro Time Zone" };
+			"Eastern Time Zone", "Chamorro Time Zone" };
 
 	private static void createConfigTxt() {
 		String[] radarNames = new String[radarSites.size()];
@@ -2035,21 +2057,53 @@ public class RadarView extends JFrame {
 		}
 
 		String defaultRadar = (String) JOptionPane.showInputDialog(null,
-				"What radar would you like to set as the default?\nThis can be changed at any time with Ctrl+R (not yet lmao).",
+				"What radar would you like to set as the default?\nThis can be changed at any time with Ctrl+R.",
 				"Choose Default Radar", JOptionPane.QUESTION_MESSAGE, null, radarNames, 0);
 
 		chosenRadar = defaultRadar.substring(0, 4);
+		RadarView.defaultRadar = chosenRadar;
 
-		String timeZone = (String) JOptionPane.showInputDialog(null,
-				"What time zone would you like to use?\nThis can be changed at any time with Ctrl+T (not yet lmao).",
+		String timeZone_ = (String) JOptionPane.showInputDialog(null,
+				"What time zone would you like to use?\nThis can be changed at any time with Ctrl+T.",
 				"Choose Time Zone", JOptionPane.QUESTION_MESSAGE, null, timeZones, 0);
 
 		int timeZoneIndex = -1;
 		for (int i = 0; i < timeZones.length; i++) {
-			if (timeZone.equals(timeZones[i])) {
+			if (timeZone_.equals(timeZones[i])) {
 				timeZoneIndex = i;
 				break;
 			}
+		}
+
+		String timeZoneSetting = timeZones[timeZoneIndex];
+
+		if ("Hawaii Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Hawaii");
+			timeZoneCode = "HST";
+		} else if ("Aleutian Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Aleutian");
+			timeZoneCode = "HST";
+		} else if ("Alaska Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Alaska");
+			timeZoneCode = "AKST";
+		} else if ("Pacific Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Pacific");
+			timeZoneCode = "PST";
+		} else if ("Mountain Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Mountain");
+			timeZoneCode = "MST";
+		} else if ("Mountain Time Zone (Arizona)".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Arizona");
+			timeZoneCode = "MST";
+		} else if ("Central Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Central");
+			timeZoneCode = "CST";
+		} else if ("Eastern Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Eastern");
+			timeZoneCode = "EST";
+		} else if ("Chamorro Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("Pacific/Guam");
+			timeZoneCode = "ChST";
 		}
 
 		int enterHomeLocation = JOptionPane.showConfirmDialog(null,
@@ -2061,7 +2115,7 @@ public class RadarView extends JFrame {
 
 		if (enterHomeLocation == 0) {
 			String hCoordStr = JOptionPane.showInputDialog(
-					"Enter the latitude and longitude, in that order.\n\nRight-click over your home in Google Maps, left-click the coordinates that pop up, and then paste them into this dialog box.");
+					"Enter the latitude and longitude, in that order.\n\nRight-click over your home in Google Maps, left-click the coordinates that pop up to copy them, and then paste them into this dialog box.\nThis can be changed at any time with Ctrl+H.");
 
 			try {
 				String[] hCoord = hCoordStr.split(", ");
@@ -2077,10 +2131,14 @@ public class RadarView extends JFrame {
 		homeLat = hLat;
 		homeLon = hLon;
 
+		createConfigTxt(RadarView.defaultRadar, hLat, hLon, timeZoneIndex);
+	}
+
+	private static void createConfigTxt(String radarCode, double hLat, double hLon, int timeZoneIndex) {
 		try {
 			PrintWriter pw = new PrintWriter(dataFolder + "config.txt");
 
-			pw.println(defaultRadar.substring(0, 4));
+			pw.println(radarCode);
 			pw.println(hLat);
 			pw.println(hLon);
 			pw.println(timeZones[timeZoneIndex]);
@@ -2097,6 +2155,7 @@ public class RadarView extends JFrame {
 			sc.useDelimiter("\n|\r\n");
 
 			chosenRadar = sc.next();
+			defaultRadar = chosenRadar;
 			homeLat = sc.nextDouble();
 			homeLon = sc.nextDouble();
 			String timeZoneSetting = sc.next();
@@ -2138,6 +2197,150 @@ public class RadarView extends JFrame {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void chooseDefaultRadarSite() {
+		String[] radarNames = new String[radarSites.size()];
+
+		for (int i = 0; i < radarNames.length; i++) {
+			radarNames[i] = radarSites.get(i).toString();
+		}
+
+		String defaultRadar = (String) JOptionPane.showInputDialog(null,
+				"What radar would you like to set as the default?\n", "Choose Default Radar",
+				JOptionPane.QUESTION_MESSAGE, null, radarNames, 0);
+
+		RadarView.defaultRadar = defaultRadar;
+
+		int timeZoneIndex = 0;
+		if (DateTimeZone.forID("US/Hawaii").equals(timeZone)) {
+			timeZoneIndex = 0;
+		} else if (DateTimeZone.forID("US/Aleutian").equals(timeZone)) {
+			timeZoneIndex = 1;
+		} else if (DateTimeZone.forID("US/Alaska").equals(timeZone)) {
+			timeZoneIndex = 2;
+		} else if (DateTimeZone.forID("US/Pacific").equals(timeZone)) {
+			timeZoneIndex = 3;
+		} else if (DateTimeZone.forID("US/Mountain").equals(timeZone)) {
+			timeZoneIndex = 4;
+		} else if (DateTimeZone.forID("US/Arizona").equals(timeZone)) {
+			timeZoneIndex = 5;
+		} else if (DateTimeZone.forID("US/Central").equals(timeZone)) {
+			timeZoneIndex = 6;
+		} else if (DateTimeZone.forID("US/Eastern").equals(timeZone)) {
+			timeZoneIndex = 7;
+		} else if (DateTimeZone.forID("Pacific/Guam").equals(timeZone)) {
+			timeZoneIndex = 8;
+		}
+
+		createConfigTxt(RadarView.defaultRadar, homeLat, homeLon, timeZoneIndex);
+	}
+
+	private static void chooseTimeZone() {
+		String timeZone_ = (String) JOptionPane.showInputDialog(null, "What time zone would you like to use?\n",
+				"Choose Time Zone", JOptionPane.QUESTION_MESSAGE, null, timeZones, 0);
+
+		int timeZoneIndex = -1;
+		for (int i = 0; i < timeZones.length; i++) {
+			if (timeZone_.equals(timeZones[i])) {
+				timeZoneIndex = i;
+				break;
+			}
+		}
+
+		String timeZoneSetting = timeZones[timeZoneIndex];
+
+		if ("Hawaii Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Hawaii");
+			timeZoneCode = "HST";
+		} else if ("Aleutian Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Aleutian");
+			timeZoneCode = "HST";
+		} else if ("Alaska Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Alaska");
+			timeZoneCode = "AKST";
+		} else if ("Pacific Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Pacific");
+			timeZoneCode = "PST";
+		} else if ("Mountain Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Mountain");
+			timeZoneCode = "MST";
+		} else if ("Mountain Time Zone (Arizona)".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Arizona");
+			timeZoneCode = "MST";
+		} else if ("Central Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Central");
+			timeZoneCode = "CST";
+		} else if ("Eastern Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("US/Eastern");
+			timeZoneCode = "EST";
+		} else if ("Chamorro Time Zone".equals(timeZoneSetting)) {
+			timeZone = DateTimeZone.forID("Pacific/Guam");
+			timeZoneCode = "ChST";
+		}
+
+		if (radarData != null) {
+			for (int t = 0; t < radarData.length; t++) {
+				radarData[t].markDataAsChanged();
+
+				int width = g.getWidth();
+				int height = g.getHeight();
+
+				panel1.drawPanel(centralLon - ((width - 200) / 2) / pixelsPerDegree,
+						centralLat + ((height) / 2) / pixelsPerDegree,
+						centralLon + ((width - 200) / 2) / pixelsPerDegree,
+						centralLat - ((height) / 2) / pixelsPerDegree, pixelsPerDegree, t,
+						radarData[t].getData()[chosenField.dataLocation],
+						radarData[t].getPtype(), radarData[t].getScanTime(),
+						radarData[t].getStormMotionDirection(),
+						radarData[t].getStormMotionSpeed(), chosenField, radarLon, radarLat, t);
+			}
+		}
+
+		createConfigTxt(defaultRadar, homeLat, homeLon, timeZoneIndex);
+	}
+
+	private static void chooseHomeLocation() {
+		String hCoordStr = JOptionPane.showInputDialog(
+				"Enter the latitude and longitude, in that order.\n\nRight-click over your home in Google Maps, left-click the coordinates that pop up to copy them, and then paste them into this dialog box.\nEnter \"-1024, -1024\" to stop showing the home marker.");
+
+		double hLat = homeLat;
+		double hLon = homeLon;
+		
+		try {
+			String[] hCoord = hCoordStr.split(", ");
+
+			hLat = Double.valueOf(hCoord[0]);
+			hLon = Double.valueOf(hCoord[1]);
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+
+		homeLat = hLat;
+		homeLon = hLon;
+
+		int timeZoneIndex = 0;
+		if (DateTimeZone.forID("US/Hawaii").equals(timeZone)) {
+			timeZoneIndex = 0;
+		} else if (DateTimeZone.forID("US/Aleutian").equals(timeZone)) {
+			timeZoneIndex = 1;
+		} else if (DateTimeZone.forID("US/Alaska").equals(timeZone)) {
+			timeZoneIndex = 2;
+		} else if (DateTimeZone.forID("US/Pacific").equals(timeZone)) {
+			timeZoneIndex = 3;
+		} else if (DateTimeZone.forID("US/Mountain").equals(timeZone)) {
+			timeZoneIndex = 4;
+		} else if (DateTimeZone.forID("US/Arizona").equals(timeZone)) {
+			timeZoneIndex = 5;
+		} else if (DateTimeZone.forID("US/Central").equals(timeZone)) {
+			timeZoneIndex = 6;
+		} else if (DateTimeZone.forID("US/Eastern").equals(timeZone)) {
+			timeZoneIndex = 7;
+		} else if (DateTimeZone.forID("Pacific/Guam").equals(timeZone)) {
+			timeZoneIndex = 8;
+		}
+
+		createConfigTxt(RadarView.defaultRadar, homeLat, homeLon, timeZoneIndex);
 	}
 
 	// so far only implemented for single panel mode
@@ -2523,7 +2726,7 @@ public class RadarView extends JFrame {
 
 		readUsingZipFile(dataFolder + "temp/activeWW.kmz", dataFolder + "temp/activeWW/");
 		watchPolygons = getPolygonsWatches(new File(dataFolder + "temp/activeWW/activeWW.kml"));
-		
+
 		watchParallelograms = getPolygonsWarnings(new File(dataFolder + "temp/warnings.kml"));
 	}
 
@@ -2981,10 +3184,12 @@ public class RadarView extends JFrame {
 	public static String loadingMessage;
 
 	private static boolean modelDownloadMethodWorking = false;
+
 	public static void downloadModelData() {
-		if(modelDownloadMethodWorking) return;
+		if (modelDownloadMethodWorking)
+			return;
 		modelDownloadMethodWorking = true;
-		
+
 		// https://nomads.ncep.noaa.gov/cgi-bin/filter_rap32.pl?dir=%2Frap.20230411&file=rap.t00z.awip32f00.grib2&var_DPT=on&var_HGT=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_2_m_above_ground=on&lev_1000_mb=on&lev_975_mb=on&lev_950_mb=on&lev_925_mb=on&lev_900_mb=on&lev_875_mb=on&lev_850_mb=on&lev_825_mb=on&lev_800_mb=on&lev_775_mb=on&lev_750_mb=on&lev_725_mb=on&lev_700_mb=on&lev_675_mb=on&lev_650_mb=on&lev_625_mb=on&lev_600_mb=on&lev_575_mb=on&lev_550_mb=on&lev_525_mb=on&lev_500_mb=on&lev_surface=on
 
 		DateTime now = DateTime.now(DateTimeZone.UTC);
@@ -3091,7 +3296,7 @@ public class RadarView extends JFrame {
 				g.repaint();
 			}
 		}
-		
+
 		modelDownloadMethodWorking = false;
 	}
 
@@ -3108,7 +3313,7 @@ public class RadarView extends JFrame {
 			String file1 = String.format("rap-f%02d.grib2", fH);
 			System.out.println(url1);
 			downloadFile(url1, file1);
-			
+
 			model = new RapModel(NetcdfFile.open(dataFolder + file1));
 
 			new File(dataFolder + String.format("rap-f%02d.grib2", fH)).delete();
@@ -3302,6 +3507,9 @@ public class RadarView extends JFrame {
 			radarSites.add(r);
 			radarCodes.add(code);
 		}
+
+		Collections.reverse(radarSites);
+		Collections.reverse(radarCodes);
 	}
 
 	private static void loadCities() {
