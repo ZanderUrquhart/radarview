@@ -3563,20 +3563,30 @@ public class RadarView extends JFrame {
 	}
 
 	private void openHelpPage() {
-		RadarPanel.loadResourceAsFile("res/helpPage.html");
-		RadarPanel.loadResourceAsFile("res/about.html");
-		RadarPanel.loadResourceAsFile("res/radar.jpeg");
+        RadarPanel.loadResourceAsFile("res/helpPage.html");
+        RadarPanel.loadResourceAsFile("res/about.html");
+        RadarPanel.loadResourceAsFile("res/radar.jpeg");
+        
+        StringBuilder dataFolderURI = new StringBuilder(dataFolder);
+        
+        if(isWindows) {
+            for(int i = 0; i < dataFolderURI.length(); i++) {
+                if(dataFolderURI.charAt(i) == '\\') {
+                    dataFolderURI.setCharAt(i, '/');
+                }
+            }
+        }
 
-		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-			try {
-				Desktop.getDesktop().browse(new URI("file:///" + dataFolder + "temp/res/helpPage.html"));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(new URI("file:///" + dataFolderURI.toString() + "temp/res/helpPage.html"));
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
 }
