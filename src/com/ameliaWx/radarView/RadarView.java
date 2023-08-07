@@ -204,6 +204,8 @@ public class RadarView extends JFrame {
 				new File(dataFolder + "temp/wwa/legend.png").delete();
 				new File(dataFolder + "temp/wwa/noaa_logo.jpg").delete();
 				new File(dataFolder + "temp/wwa/wwa.kml").delete();
+				new File(dataFolder + "temp/activeWW.kmz").delete();
+				new File(dataFolder + "temp/activeWW/ActiveWW.kml").delete();
 				new File(dataFolder + "temp/spcStormReports.kmz").delete();
 			}
 		}));
@@ -270,6 +272,7 @@ public class RadarView extends JFrame {
 		try {
 			getSevereWarnings();
 			getSevereWatches();
+			getSpcSevereWatches();
 			getSpcDay1Outlook();
 			getSpcStormReports();
 		} catch (IOException e1) {
@@ -588,6 +591,7 @@ public class RadarView extends JFrame {
 					try {
 						getSevereWarnings();
 						getSevereWatches();
+						getSpcSevereWatches();
 						getSpcDay1Outlook();
 						getSpcStormReports();
 					} catch (IOException e) {
@@ -1087,10 +1091,12 @@ public class RadarView extends JFrame {
 //				}
 //			}
 
-			g2d.drawImage(RadarPanel.warnings, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.warnings.getWidth(),
-					RadarPanel.warnings.getHeight(), null);
 			g2d.drawImage(RadarPanel.watches, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.watches.getWidth(),
 					RadarPanel.watches.getHeight(), null);
+			g2d.drawImage(RadarPanel.spcWatches, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.spcWatches.getWidth(),
+					RadarPanel.spcWatches.getHeight(), null);
+			g2d.drawImage(RadarPanel.warnings, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.warnings.getWidth(),
+					RadarPanel.warnings.getHeight(), null);
 			g2d.drawImage(RadarPanel.spcOutlook, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.spcOutlook.getWidth(),
 					RadarPanel.spcOutlook.getHeight(), null);
 			g2d.drawImage(RadarPanel.spcReports, wUlX, wUlY, wLrX, wLrY, 0, 0, RadarPanel.spcReports.getWidth(),
@@ -2210,7 +2216,7 @@ public class RadarView extends JFrame {
 				"What radar would you like to set as the default?\n", "Choose Default Radar",
 				JOptionPane.QUESTION_MESSAGE, null, radarNames, 0);
 
-		RadarView.defaultRadar = defaultRadar;
+		RadarView.defaultRadar = defaultRadar.substring(0, 4);
 
 		int timeZoneIndex = 0;
 		if (DateTimeZone.forID("US/Hawaii").equals(timeZone)) {
@@ -2725,9 +2731,8 @@ public class RadarView extends JFrame {
 		downloadFile("https://www.spc.noaa.gov/products/watch/ActiveWW.kmz", "temp/activeWW.kmz");
 
 		readUsingZipFile(dataFolder + "temp/activeWW.kmz", dataFolder + "temp/activeWW/");
-		watchPolygons = getPolygonsWatches(new File(dataFolder + "temp/activeWW/activeWW.kml"));
-
-		watchParallelograms = getPolygonsWarnings(new File(dataFolder + "temp/warnings.kml"));
+		
+		watchParallelograms = getParallelogramsWatches(new File(dataFolder + "temp/activeWW/ActiveWW.kml"));
 	}
 
 	private static void getSevereWarnings() throws IOException {
@@ -2929,63 +2934,84 @@ public class RadarView extends JFrame {
 	public static ArrayList<String> spcWatchNames = new ArrayList<>();
 
 	private static ArrayList<ArrayList<PointD>> getParallelogramsWatches(File kml) {
-		watchNames = new ArrayList<>();
-		Pattern p = Pattern.compile("</styleUrl><Polygon>.*?</coordinates>");
+		spcWatchNames = new ArrayList<>();
+		Pattern p = Pattern.compile("<href>.*?</href>");
 
 		Matcher m = p.matcher(usingBufferedReader(kml));
 
-		Pattern p1 = Pattern.compile("</Polygon>.*?</name>");
-
-		Matcher m1 = p1.matcher(usingBufferedReader(kml));
-
-		ArrayList<String> coordList = new ArrayList<>();
+		ArrayList<String> hrefList = new ArrayList<>();
 
 		while (m.find()) {
-			// System.out.println(m.start() + " " + m.end() + " " + m.group().substring(13,
-			// m.group().length() - 14));
-			String coords = m.group().substring(11 + 16 + 13 + 9 + 13, m.group().length() - 14);
-//			System.out.println(coords);
-			if ('y' != coords.charAt(0)) {
-				coordList.add(coords);
+			String href = m.group().substring(6, m.group().length() - 7);
+			hrefList.add(href);
+			System.out.println(href);
+		}
+
+		ArrayList<ArrayList<PointD>> parallelograms = new ArrayList<>();
+
+		for (String href : hrefList) {
+			System.out.println(href);
+			try {
+				String[] hrefSplit = href.split("/");
+				String filename = hrefSplit[hrefSplit.length - 1];
+				String filenameNoExt = filename.split("\\.")[0];
+				System.out.println(filename);
+				System.out.println(filenameNoExt);
+				
+				downloadFile(href, "temp/" + filename);
+				readUsingZipFile(dataFolder + "temp/" + filename, dataFolder + "temp/activeWW/");
+				
+				File paraKml = new File(dataFolder + "temp/activeWW/" + filenameNoExt + ".kml");
+				
+				Pattern p1 = Pattern.compile("<coordinates>.*?</coordinates>");
+
+				Matcher m1 = p1.matcher(usingBufferedReader(paraKml));
+
+				Pattern p2 = Pattern.compile("<styleUrl>.*?</styleUrl>");
+
+				Matcher m2 = p2.matcher(usingBufferedReader(paraKml));
+
+				ArrayList<String> coordList = new ArrayList<>();
+
+				while (m1.find()) {
+					String coords = m1.group().substring(13, m1.group().length() - 14);
+					
+					coordList.add(coords);
+					System.out.println(coords);
+				}
+
+				ArrayList<PointD> parallelogram = new ArrayList<>();
+				for(String coords : coordList) {
+					String[] c = coords.substring(1).split(" ");
+					
+					for(String coord : c) {
+						System.out.println("coord: " + coord);
+						String[] pp = coord.split(",");
+						parallelogram.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+					}
+				}
+				
+				parallelograms.add(parallelogram);
+
+				while (m2.find()) {
+					System.out.println(spcWatchNames.size());
+					String name = m2.group().substring(10, m2.group().length() - 11);
+					spcWatchNames.add(name.substring(1));
+					System.out.println("watch name: " + name.substring(1));
+					System.out.println(spcWatchNames.size());
+				}
+
+				new File(dataFolder + "temp/" + filename).delete();
+				paraKml.delete();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 
-		while (m1.find()) {
-			// System.out.println(m.start() + " " + m.end() + " " + m.group().substring(13,
-			// m.group().length() - 14));
-			String name = m1.group().substring(17, m1.group().length() - 7);
-			if (' ' == name.charAt(0)) {
-//				System.out.println(name.substring(0));
-				watchNames.add(name.substring(1));
-			}
-		}
+		System.out.println(parallelograms.size());
+		System.out.println(spcWatchNames.size());
 
-		System.out.println(coordList.size());
-
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
-
-		for (String coords : coordList) {
-			Scanner sc = new Scanner(coords);
-			sc.useDelimiter(" ");
-
-			ArrayList<PointD> polygon = new ArrayList<>();
-
-			while (sc.hasNext()) {
-				String s = sc.next();
-				// System.out.println(s);
-
-				String[] pp = s.split(",");
-
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
-			}
-
-			sc.close();
-			polygons.add(polygon);
-		}
-
-		System.out.println(polygons.size());
-
-		return polygons;
+		return parallelograms;
 	}
 
 	public static ArrayList<ArrayList<PointD>> warningPolygons;

@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.ameliaWx.soundingViewer.MapInset;
 
@@ -411,6 +412,89 @@ public class RadarMapInset implements MapInset {
 			}
 		}
 
+		BufferedImage spcWatches = new BufferedImage(size, size, BufferedImage.TYPE_4BYTE_ABGR);
+		gg = spcWatches.createGraphics();
+		
+		BasicStroke clr2 = new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+		BasicStroke blk2 = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+
+		gg.setStroke(blk2);
+
+		for (int p = 0; p < RadarView.watchParallelograms.size(); p++) {
+			ArrayList<PointD> polygon = RadarView.watchParallelograms.get(p);
+			String name = RadarView.spcWatchNames.get(p).trim();
+
+			System.out.println("intrf: " + name);
+			System.out.println("intrf: " + Arrays.toString(polygon.toArray()));
+
+			gg.setColor(new Color(0, 0, 0, 0));
+			if ("TOR".equals(name))
+				gg.setColor(new Color(0, 0, 0, 255));
+			if ("SVR".equals(name))
+				gg.setColor(new Color(0, 0, 0, 255));
+
+			for (int i = 0; i < polygon.size(); i++) {
+				int j = i + 1;
+				if (j == polygon.size())
+					j = 0;
+
+				PointD p1 = polygon.get(i);
+				PointD p2 = polygon.get(j);
+
+				double lat1 = p1.getY();
+				double lon1 = p1.getX();
+				double lat2 = p2.getY();
+				double lon2 = p2.getX();
+
+					int x1 = (int) linScale(leftLon, rightLon, 0, size, lon1);
+					int y1 = (int) linScale(topLat, bottomLat, 0, size, lat1);
+					int x2 = (int) linScale(leftLon, rightLon, 0, size, lon2);
+					int y2 = (int) linScale(topLat, bottomLat, 0, size, lat2);
+
+					// System.out.println(leftLon + "\t" + rightLon + "\t" + lon1 + "\t" + x1 + "\t"
+					// + y1 + "\t" + size);
+
+					gg.drawLine(x1, y1, x2, y2);
+			}
+		}
+
+		gg.setStroke(clr2);
+
+		for (int p = 0; p < RadarView.watchParallelograms.size(); p++) {
+			ArrayList<PointD> polygon = RadarView.watchParallelograms.get(p);
+			String name = RadarView.spcWatchNames.get(p).trim();
+
+			gg.setColor(new Color(0, 0, 0, 0));
+			if ("TOR".equals(name))
+				gg.setColor(new Color(255, 64, 64, 255));
+			if ("SVR".equals(name))
+				gg.setColor(new Color(255, 255, 64, 255));
+
+			for (int i = 0; i < polygon.size(); i++) {
+				int j = i + 1;
+				if (j == polygon.size())
+					j = 0;
+
+				PointD p1 = polygon.get(i);
+				PointD p2 = polygon.get(j);
+
+				double lat1 = p1.getY();
+				double lon1 = p1.getX();
+				double lat2 = p2.getY();
+				double lon2 = p2.getX();
+
+					int x1 = (int) linScale(leftLon, rightLon, 0, size, lon1);
+					int y1 = (int) linScale(topLat, bottomLat, 0, size, lat1);
+					int x2 = (int) linScale(leftLon, rightLon, 0, size, lon2);
+					int y2 = (int) linScale(topLat, bottomLat, 0, size, lat2);
+
+					// System.out.println(leftLon + "\t" + rightLon + "\t" + lon1 + "\t" + x1 + "\t"
+					// + y1 + "\t" + size);
+
+					gg.drawLine(x1, y1, x2, y2);
+			}
+		}
+
 		double lonStretchFactor = Math.cos(Math.toRadians(radarLat));
 
 		double radialLat1 = 1000.0 * 0.25 / 111.32;
@@ -445,6 +529,7 @@ public class RadarMapInset implements MapInset {
 		g.drawImage(estados, 0, 0, null);
 		g.drawImage(provinces, 0, 0, null);
 		g.drawImage(states, 0, 0, null);
+		g.drawImage(spcWatches, 0, 0, null);
 		g.drawImage(warnings, 0, 0, null);
 
 		g.setColor(new Color(0, 0, 0));

@@ -8,7 +8,7 @@ public enum Field {
 	VLCY_BASE(1, "Base Velocity", 8, 1), 
 	VLCY_SREL(2, "Storm Relative Velocity [Experimental]", 7, 1), 
 	SPEC_WDTH(3, "Spectrum Width", 2, 2), 
-	DIFF_REFL(4, "Differential Reflectivity", 3, 3),
+	DIFF_REFL(4, "Differential Reflectivity [Currently Broken]", 3, 3),
 	CORR_COEF(5, "Correlation Coefficient", 4, 4),
 	DIFF_PHSE(6, "Differential Phase", 5, 5),
 	KDP(6, "Specific Differential Phase", 6, 6),

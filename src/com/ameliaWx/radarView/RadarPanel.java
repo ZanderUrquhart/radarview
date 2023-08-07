@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
@@ -124,6 +125,7 @@ public class RadarPanel extends JComponent {
 	private static BufferedImage basemap; // only update when necessary
 
 	public static BufferedImage warnings; // check performance of warnings draw
+	public static BufferedImage spcWatches; // check performance of warnings draw
 	public static BufferedImage watches; // check performance of watches draw
 	public static BufferedImage spcOutlook; // check performance of spc outlook draw
 	public static BufferedImage spcReports;
@@ -190,6 +192,7 @@ public class RadarPanel extends JComponent {
 
 		if (drawWarningsAndWatches) {
 			drawWarnings(ulLon, ulLat, lrLon, lrLat, ppd, RadarView.warningPolygons, RadarView.warningNames);
+			drawSpcWatches(ulLon, ulLat, lrLon, lrLat, ppd, RadarView.watchParallelograms, RadarView.spcWatchNames);
 			drawWatches(ulLon, ulLat, lrLon, lrLat, ppd, RadarView.watchPolygons, RadarView.watchNames);
 			drawSpcOutlook(ulLon, ulLat, lrLon, lrLat, ppd, RadarView.spcOutlookPolygons,
 					RadarView.spcOutlookCategories);
@@ -936,6 +939,99 @@ public class RadarPanel extends JComponent {
 		}
 
 		warnings = warningsImg;
+	}
+
+	private void drawSpcWatches(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
+			ArrayList<ArrayList<PointD>> watchPolygons, ArrayList<String> watchNames) {
+		System.out.println(watchPolygons.size());
+		System.out.println(watchNames.size());
+		
+		int imgWidth = (int) ((lrLon - ulLon) * ppd);
+		int imgHeight = (int) ((ulLat - lrLat) * ppd);
+
+		BufferedImage watchesImg = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D g = watchesImg.createGraphics();
+
+		if (RadarView.viewStormScaleWarnings) {
+			BasicStroke clr = new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+			BasicStroke blk = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+
+			g.setStroke(blk);
+
+			for (int p = 0; p < watchPolygons.size(); p++) {
+				ArrayList<PointD> polygon = watchPolygons.get(p);
+				String name = watchNames.get(p).trim();
+
+				g.setColor(new Color(0, 0, 0, 0));
+				if ("TOR".equals(name))
+					g.setColor(new Color(0, 0, 0, 255));
+				if ("SVR".equals(name))
+					g.setColor(new Color(0, 0, 0, 255));
+
+				for (int i = 0; i < polygon.size(); i++) {
+					int j = i + 1;
+					if (j == polygon.size())
+						j = 0;
+
+					PointD p1 = polygon.get(i);
+					PointD p2 = polygon.get(j);
+
+					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
+							&& p1.getY() <= ulLat);
+					boolean renderP2 = (p2.getX() >= ulLon && p2.getX() <= lrLon && p2.getY() >= lrLat
+							&& p2.getY() <= ulLat);
+
+					if (renderP1 || renderP2) {
+						int x1 = (int) linScale(ulLon, lrLon, 0, imgWidth, p1.getX());
+						int y1 = (int) linScale(ulLat, lrLat, 0, imgHeight, p1.getY());
+						int x2 = (int) linScale(ulLon, lrLon, 0, imgWidth, p2.getX());
+						int y2 = (int) linScale(ulLat, lrLat, 0, imgHeight, p2.getY());
+
+						g.drawLine(x1, y1, x2, y2);
+					}
+				}
+			}
+
+			g.setStroke(clr);
+
+			for (int p = 0; p < watchPolygons.size(); p++) {
+				ArrayList<PointD> polygon = watchPolygons.get(p);
+				String name = watchNames.get(p).trim();
+
+				g.setColor(new Color(0, 0, 0, 0));
+				if ("TOR".equals(name))
+					g.setColor(new Color(255, 64, 64, 255));
+				if ("SVR".equals(name))
+					g.setColor(new Color(255, 255, 64, 255));
+
+				for (int i = 0; i < polygon.size(); i++) {
+					int j = i + 1;
+					if (j == polygon.size())
+						j = 0;
+
+					PointD p1 = polygon.get(i);
+					PointD p2 = polygon.get(j);
+
+					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
+							&& p1.getY() <= ulLat);
+					boolean renderP2 = (p2.getX() >= ulLon && p2.getX() <= lrLon && p2.getY() >= lrLat
+							&& p2.getY() <= ulLat);
+
+					if (renderP1 || renderP2) {
+						int x1 = (int) linScale(ulLon, lrLon, 0, imgWidth, p1.getX());
+						int y1 = (int) linScale(ulLat, lrLat, 0, imgHeight, p1.getY());
+						int x2 = (int) linScale(ulLon, lrLon, 0, imgWidth, p2.getX());
+						int y2 = (int) linScale(ulLat, lrLat, 0, imgHeight, p2.getY());
+
+						g.drawLine(x1, y1, x2, y2);
+
+//					System.out.println(x1 + "\t" + y1 + "\t" + name);
+					}
+				}
+			}
+		}
+
+		spcWatches = watchesImg;
 	}
 
 	private void drawWatches(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
