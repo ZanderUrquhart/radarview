@@ -954,7 +954,7 @@ public class RadarPanel extends JComponent {
 
 		if (RadarView.viewStormScaleWarnings) {
 			BasicStroke clr = new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
-			BasicStroke blk = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+			BasicStroke blk = new BasicStroke(8, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
 
 			g.setStroke(blk);
 
@@ -1000,9 +1000,9 @@ public class RadarPanel extends JComponent {
 
 				g.setColor(new Color(0, 0, 0, 0));
 				if ("TOR".equals(name))
-					g.setColor(new Color(255, 64, 64, 255));
+					g.setColor(new Color(150, 0, 0, 255));
 				if ("SVR".equals(name))
-					g.setColor(new Color(255, 255, 64, 255));
+					g.setColor(new Color(128, 128, 0, 255));
 
 				for (int i = 0; i < polygon.size(); i++) {
 					int j = i + 1;

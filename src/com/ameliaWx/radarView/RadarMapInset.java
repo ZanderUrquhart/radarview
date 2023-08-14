@@ -416,16 +416,13 @@ public class RadarMapInset implements MapInset {
 		gg = spcWatches.createGraphics();
 		
 		BasicStroke clr2 = new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
-		BasicStroke blk2 = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+		BasicStroke blk2 = new BasicStroke(8, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
 
 		gg.setStroke(blk2);
 
 		for (int p = 0; p < RadarView.watchParallelograms.size(); p++) {
 			ArrayList<PointD> polygon = RadarView.watchParallelograms.get(p);
 			String name = RadarView.spcWatchNames.get(p).trim();
-
-			System.out.println("intrf: " + name);
-			System.out.println("intrf: " + Arrays.toString(polygon.toArray()));
 
 			gg.setColor(new Color(0, 0, 0, 0));
 			if ("TOR".equals(name))
@@ -466,9 +463,9 @@ public class RadarMapInset implements MapInset {
 
 			gg.setColor(new Color(0, 0, 0, 0));
 			if ("TOR".equals(name))
-				gg.setColor(new Color(255, 64, 64, 255));
+				gg.setColor(new Color(150, 0, 0, 255));
 			if ("SVR".equals(name))
-				gg.setColor(new Color(255, 255, 64, 255));
+				gg.setColor(new Color(128, 128, 0, 255));
 
 			for (int i = 0; i < polygon.size(); i++) {
 				int j = i + 1;
