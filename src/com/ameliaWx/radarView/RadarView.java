@@ -55,6 +55,7 @@ import org.joda.time.DateTimeZone;
 
 import com.ameliaWx.radarView.nwpModel.LambertConformalProjection;
 import com.ameliaWx.radarView.nwpModel.NwpField;
+import com.ameliaWx.radarView.nwpModel.PtypeAlgorithm;
 import com.ameliaWx.radarView.nwpModel.RapInterpModel;
 import com.ameliaWx.radarView.nwpModel.RapModel;
 import com.ameliaWx.radarView.srtm.SrtmModel2;
@@ -1471,6 +1472,24 @@ public class RadarView extends JFrame {
 
 				g.repaint();
 
+				break;
+			case KeyEvent.VK_P:
+				DateTime scanTime = radarData[chosenTimestep].getScanTime();
+				double westLon = centralLon - ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+				double eastLon = centralLon + ((g.getWidth() - 200) / 2) / pixelsPerDegree;
+				double northLat = centralLat + ((g.getHeight()) / 2) / pixelsPerDegree;
+				double southLat = centralLat - ((g.getHeight()) / 2) / pixelsPerDegree;
+
+				double lon = linScale(0, g.getWidth() - 200, westLon, eastLon, mx);
+				double lat = linScale(0, g.getHeight(), northLat, southLat, my);
+				
+				double srtmElev = srtm.getElevation(lat, lon);
+				
+				if(scanTime.isAfter(time1)) {
+					modelI1.getPrecipitationType(scanTime, lat, lon, PtypeAlgorithm.BOURGOUIN_REVISED_EXTENDED, true, srtmElev, true);
+				} else {
+					modelI0.getPrecipitationType(scanTime, lat, lon, PtypeAlgorithm.BOURGOUIN_REVISED_EXTENDED, true, srtmElev, true);
+				}
 				break;
 			case KeyEvent.VK_R:
 				if (e.isControlDown()) {

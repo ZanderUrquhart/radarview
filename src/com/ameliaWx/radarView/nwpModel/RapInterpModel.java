@@ -87,6 +87,11 @@ public class RapInterpModel {
 	// rewrite to use getDataForPtypesAsArray
 	public int getPrecipitationType(DateTime time, double latitude, double longitude, PtypeAlgorithm algo,
 			boolean dynamicInitLayer, double srtmElev) {
+		return getPrecipitationType(time, latitude, longitude, algo, dynamicInitLayer, srtmElev, false);
+	}
+	
+	public int getPrecipitationType(DateTime time, double latitude, double longitude, PtypeAlgorithm algo,
+			boolean dynamicInitLayer, double srtmElev, boolean debug) {
 //		HashMap<NwpField, Double> tmpProfile = getData(time, latitude, longitude);
 		if (model1.getData(0, latitude, longitude, NwpField.TMP_2M) != -1024.0) {
 			float timeNormalized = getTimeInterpWeight(time);
@@ -149,6 +154,8 @@ public class RapInterpModel {
 //			System.out.println(hgtSurface/100 + " m");
 //			System.out.println(tmpSurface/100 + " K");
 //			System.out.print("pre\t");
+			
+			if(debug) System.out.println("ptype debug on");
 
 			PrecipitationType ptype = PrecipitationType.RAIN;
 			switch (algo) {
@@ -160,7 +167,7 @@ public class RapInterpModel {
 				break;
 			case BOURGOUIN_REVISED_EXTENDED:
 				ptype = PtypeAlgorithms.bourgouinRevisedExtendedMethod(pressureLevels, tmpIsobaric, dptIsobaric,
-						hgtIsobaric, presSurface, hgtSurface, tmpSurface, dynamicInitLayer);
+						hgtIsobaric, presSurface, hgtSurface, tmpSurface, dynamicInitLayer, debug);
 				break;
 			case URQUHART_EXPERIMENTAL:
 				break;
