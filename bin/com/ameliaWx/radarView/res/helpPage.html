@@ -16,7 +16,7 @@
     </head>
     <body>
         <h1>RadarView Help Page</h1>
-        <p class="version"><i>Beta Version 4 - Released August 6, 2023<br>Made by <a href="about.html">Amelia Urquhart</a></i></p>
+        <p class="version"><i>Beta Version 5 - Released September 13, 2023<br>Made by <a href="about.html">Amelia Urquhart</a></i></p>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScJ_znAk9eXMFkPeXFscD6WDZAvThl3yZHq1_kdk6m0l59I9A/viewform?usp=sf_link">Click here to report a bug</a>
         <br>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSdteKWtiyNbjerKJ60fR7MtbUqR4ig4x7Yw0VKbO6yetnwsRQ/viewform?usp=sf_link">Click here to request a feature</a>
@@ -25,7 +25,7 @@
         <p>Source code is available at <a href = "https://github.com/a-urq/radarview">https://github.com/a-urq/radarview</a>.</p>
 
         <h2>Acknowledgements</h2>
-        <p><i>Special thanks to Rylan Lopez and Richie Cross for helping me test this program on MacOS and Morgan J. Fuld for helping me test on Windows.</i></p>
+        <p><i>Special thanks to Rylan Lopez and Richie Cross for helping me test this program on MacOS, Morgan J. Fuld for helping me test on Windows, and William Thiesing for telling me that there are extra reflectivity scans in the NEXRAD data files. I'm still figuring out how to access that extra data as of writing.</i></p>
 
         <h2>City Data Attribution</h2>
         <p>The city data used in RadarView is a modified version of the data provided by <a href = "https://simplemaps.com/data/us-cities">Simplemaps</a> under the Creative Commons Attribution 4.0 license.</p>
@@ -39,6 +39,14 @@
             <li><a href="#products">Products and How to Use Them</a></li>
             <li><a href="#bugs">Known Issues</a></li>
             <li><a href="#future">Future Features</a></li>
+        </ul>
+        
+        
+        <h2 id="whatsnew">What's New in Beta Version 5</h2>
+        <ul>
+            <li>Observational Soundings! Press B and select a station to view weather balloon data from anywhere in the US.</li>
+            <li>50 mb Mixed Layer CAPE removed, replaced with Inflow Layer CAPE (ILCAPE).</li>
+            <li>Skew-Ts made to be more skewed.</li>
         </ul>
         
         <h2 id="whatsnew">What's New in Beta Version 4</h2>
@@ -184,6 +192,10 @@
             <tr>
                 <td>A</td>
                 <td>Changes the length of the radar animation. Has no immediate effect if animation mode is turned off.</td>
+            </tr>
+            <tr>
+                <td>B</td>
+                <td>Displays a dialog box to select a station for which to view radiosonde (weather balloon) data.</td>
             </tr>
             <tr>
                 <td>C</td>

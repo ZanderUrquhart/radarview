@@ -480,7 +480,7 @@ public class RapModel implements NwpModel {
 	// rewrite to only fetch data being used
 	public float[] getDataForPtypesAsArray(int time, double latitude, double longitude, InterpolationMode m,
 			boolean srtmAdjusted) {
-		float[] data = new float[68];
+		float[] data = new float[68 + 6 * 3];
 		
 		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
 		
@@ -505,7 +505,7 @@ public class RapModel implements NwpModel {
 			data[3] = getData(0, iD, jD, i, j, w00, w01, w10, w11, 3);
 			data[4] = getData(0, iD, jD, i, j, w00, w01, w10, w11, 4);
 			
-			for(int f = 0; f < 21; f++) {
+			for(int f = 0; f < 27; f++) {
 				data[5 + 3 * f] = getData(0, iD, jD, i, j, w00, w01, w10, w11, 7 + 5 * f);
 				data[6 + 3 * f] = getData(0, iD, jD, i, j, w00, w01, w10, w11, 8 + 5 * f);
 				data[7 + 3 * f] = getData(0, iD, jD, i, j, w00, w01, w10, w11, 9 + 5 * f);

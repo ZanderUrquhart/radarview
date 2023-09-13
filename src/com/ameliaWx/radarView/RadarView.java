@@ -61,6 +61,8 @@ import com.ameliaWx.radarView.nwpModel.RapModel;
 import com.ameliaWx.radarView.srtm.SrtmModel2;
 import com.ameliaWx.soundingViewer.Sounding;
 import com.ameliaWx.soundingViewer.SoundingFrame;
+import com.ameliaWx.soundingViewer.unixTool.RadiosondeSite;
+import com.ameliaWx.soundingViewer.unixTool.RadiosondeWrapper;
 import com.ameliaWx.weatherUtils.WeatherUtils;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
@@ -164,7 +166,9 @@ public class RadarView extends JFrame {
 	public static boolean viewCities = true;
 
 	public static boolean isWindows = false;
-
+	
+	public static ArrayList<String> radiosondeList = null;
+	
 	public static void main(String[] args) {
 //		try {
 //			RadarPanel.drawWorldMap();
@@ -240,6 +244,9 @@ public class RadarView extends JFrame {
 		long segmentStartTime = System.currentTimeMillis();
 		loadRadarSites();
 		segmentTimes[0] = System.currentTimeMillis() - segmentStartTime;
+
+		loadWindow.setTitle("Initializing RadarView: Loading radiosonde sites...");
+		radiosondeList = RadiosondeSite.fourLetterCodeList();
 
 		loadWindow.setTitle("Initializing RadarView: Loading cities...");
 		segmentStartTime = System.currentTimeMillis();
@@ -1287,7 +1294,7 @@ public class RadarView extends JFrame {
 //			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
 //			System.out.println("%");
 
-			instance.setTitle("RadarView Beta Version 4 (" + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
+			instance.setTitle("RadarView Beta Version 5 (" + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
 					+ "%, " + convToGigaMega(usedMemory).trim() + ")");
 //			long paintEndTime = System.currentTimeMillis();
 //			System.out.println("paint exec time: " + (paintEndTime - paintStartTime) + " ms");
@@ -1415,6 +1422,9 @@ public class RadarView extends JFrame {
 //				if (changeAnimLength)
 //					JOptionPane.showMessageDialog(null,
 //							"The data download may take a while. You will be notified when it is finished.");
+				break;
+			case KeyEvent.VK_B:
+				displayRadiosonde();
 				break;
 			case KeyEvent.VK_C:
 				viewCities = !viewCities;
@@ -1893,8 +1903,9 @@ public class RadarView extends JFrame {
 		PointD dR = PointD.subtract(dR2, dR1);
 		double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
 
-		new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj, soundingTime1,
+		SoundingFrame s = new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj, soundingTime1,
 				lat, lon, windOffsetAngle, new RadarMapInset());
+		s.setLocationRelativeTo(instance);
 	}
 
 	private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
@@ -2224,6 +2235,14 @@ public class RadarView extends JFrame {
 		}
 	}
 
+	private static void displayRadiosonde() {
+		String radiosonde = (String) JOptionPane.showInputDialog(null,
+				"What radiosonde would you like to view?\n", "Choose Radiosonde",
+				JOptionPane.QUESTION_MESSAGE, null, radiosondeList.toArray(), 0);
+		
+		RadiosondeWrapper.displayCurrentSounding(RadiosondeSite.findSite(radiosonde.substring(0, 4)));
+	}
+	
 	private static void chooseDefaultRadarSite() {
 		String[] radarNames = new String[radarSites.size()];
 
@@ -2538,7 +2557,7 @@ public class RadarView extends JFrame {
 				System.err.println("Caught EOF!");
 			} catch (NullPointerException e) {
 				testPassed = false;
-				System.err.println("Caught NullPtr!");
+				System.err.println("Caught NullPtr! test passed: " + testPassed);
 				System.out.println("test passed: " + testPassed);
 			} finally {
 				new File(dataFolder + radarSite + "-test.nexrad.uncompress").delete();
@@ -2546,9 +2565,18 @@ public class RadarView extends JFrame {
 
 			int testOffset = testPassed ? 0 : 1;
 
+//			if(mostRecentFilename.length() >= 4) {
+//				String mrfPrefix = mostRecentFilename.substring(0, 4);
+//				if(prevChosenRadar != mrfPrefix) {
+//					System.out.println("prevChosenRadar/mrfPrefix:\t" + prevChosenRadar + "\t" + mrfPrefix); 
+//					prevChosenRadar = mrfPrefix;
+//				}
+//			}
+
 			System.out.println("nexrad files: " + Arrays.toString(nexradFiles.toArray()));
 			System.out.println("most recent filename: " + mostRecentFilename);
-
+			System.out.println("chosenRadar/prevChosenRadar:\t" + chosenRadar + "\t" + prevChosenRadar); 
+			
 			if (radarData == null || !chosenRadar.equals(prevChosenRadar)) {
 				animationMode = false;
 
@@ -2597,6 +2625,7 @@ public class RadarView extends JFrame {
 				boolean foundInLookback = false;
 				for (int lookback = 1; lookback < nexradFiles.size() - 2; lookback++) {
 					if (mostRecentFilename.equals(nexradFiles.get(lookback + testOffset))) {
+						foundInLookback = true;
 						System.out.println("test passed: " + testPassed);
 						System.out.println("test offset: " + testOffset);
 
@@ -3183,6 +3212,23 @@ public class RadarView extends JFrame {
 			String name = nameSuperstring.substring(10, nameSuperstring.length() - 11);
 
 			String[] latLonAlt = coords.split(",");
+			
+			boolean foundInvalidData = false;
+			for(int i = 0; i < latLonAlt.length; i++) {
+//				Pattern pC = Pattern.compile("[^0-9\\.-]");
+//				Matcher mC = pC.matcher(placemark);
+				
+				try {
+					Double.valueOf(latLonAlt[i]);
+				} catch (NumberFormatException e) {
+					foundInvalidData = true;
+					break;
+				}
+			}
+			
+			if(foundInvalidData) {
+				continue;
+			}
 
 			PointD coord = new PointD(Double.valueOf(latLonAlt[1]), Double.valueOf(latLonAlt[0]));
 

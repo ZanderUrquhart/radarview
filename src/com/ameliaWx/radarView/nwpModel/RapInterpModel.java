@@ -105,46 +105,46 @@ public class RapInterpModel {
 			float[] tmpProfile1 = model1.getDataForPtypesAsArray(0, latitude, longitude);
 			float[] tmpProfile2 = model2.getDataForPtypesAsArray(0, latitude, longitude);
 			
-			float[] pressureLevels = new float[22];
-			float[] tmpIsobaric = new float[22];
-			float[] dptIsobaric = new float[22];
-			float[] hgtIsobaric = new float[22];
+			float[] pressureLevels = new float[28];
+			float[] tmpIsobaric = new float[28];
+			float[] dptIsobaric = new float[28];
+			float[] hgtIsobaric = new float[28];
 
-			for (int i = 0; i < 21; i++) {
-				pressureLevels[i] = 50000 + 2500 * i;
+			for (int i = 0; i < 27; i++) {
+				pressureLevels[i] = 35000 + 2500 * i;
 
-				tmpIsobaric[i] = (timeWeight1 * tmpProfile1[5 + 3 * (20 - i)] + timeWeight2 * tmpProfile2[5 + 3 * (20 - i)]);
+				tmpIsobaric[i] = (timeWeight1 * tmpProfile1[5 + 3 * (26 - i)] + timeWeight2 * tmpProfile2[5 + 3 * (26 - i)]);
 
-				double rhIsobaric = ((timeWeight1 * tmpProfile1[6 + 3 * (20 - i)] + timeWeight2 * tmpProfile2[6 + 3 * (20 - i)]))/100.0;
+				double rhIsobaric = ((timeWeight1 * tmpProfile1[6 + 3 * (26 - i)] + timeWeight2 * tmpProfile2[6 + 3 * (26 - i)]))/100.0;
 				dptIsobaric[i] = (float) WeatherUtils.dewpoint(tmpIsobaric[i], rhIsobaric);
 
-				hgtIsobaric[i] = (timeWeight1 * tmpProfile1[7 + 3 * (20 - i)] + timeWeight2 * tmpProfile2[7 + 3 * (20 - i)]);
+				hgtIsobaric[i] = (timeWeight1 * tmpProfile1[7 + 3 * (26 - i)] + timeWeight2 * tmpProfile2[7 + 3 * (26 - i)]);
 			}
 
 			float presSurface = (timeWeight1 * tmpProfile1[1] + timeWeight2 * tmpProfile2[1]);
 			float hgtSurface = (timeWeight1 * tmpProfile1[0] + timeWeight2 * tmpProfile2[0]);
-			float tmpSurface = (timeWeight1 * tmpProfile1[2] + timeWeight2 * tmpProfile2[2])/2;
+			float tmpSurface = (timeWeight1 * tmpProfile1[2] + timeWeight2 * tmpProfile2[2]);
 			
 //			System.out.println(hgtSurface);
 			
-			pressureLevels[21] = (float) (presSurface * Math.exp(-2/SCALE_HEIGHT)); // corrects for it being the 2 m surface instead of the 0 m surface
-			tmpIsobaric[21] = (timeWeight1 * tmpProfile1[3] + timeWeight2 * tmpProfile2[3]);
-			dptIsobaric[21] = (timeWeight1 * tmpProfile1[4] + timeWeight2 * tmpProfile2[4]);
-			hgtIsobaric[21] = (float) (hgtSurface + 2);
+			pressureLevels[27] = (float) (presSurface * Math.exp(-2/SCALE_HEIGHT)); // corrects for it being the 2 m surface instead of the 0 m surface
+			tmpIsobaric[27] = (timeWeight1 * tmpProfile1[3] + timeWeight2 * tmpProfile2[3]);
+			dptIsobaric[27] = (timeWeight1 * tmpProfile1[4] + timeWeight2 * tmpProfile2[4]);
+			hgtIsobaric[27] = (float) (hgtSurface + 2);
 			
 			// if used, adjusts for high-res DEM data
 			if(srtmElev != -1024) {
 				double hgtDiff = srtmElev - hgtSurface; // meters
 				
-				pressureLevels[21] *= Math.exp(-hgtDiff/SCALE_HEIGHT);
-				tmpIsobaric[21] -= 0.0065 * hgtDiff;
-				dptIsobaric[21] -= 0.002 * hgtDiff;
+				pressureLevels[27] *= Math.exp(-hgtDiff/SCALE_HEIGHT);
+				tmpIsobaric[27] -= 0.0065 * hgtDiff;
+				dptIsobaric[27] -= 0.002 * hgtDiff;
 				
-				if(dptIsobaric[21] > tmpIsobaric[21]) {
-					dptIsobaric[21] = tmpIsobaric[21];
+				if(dptIsobaric[27] > tmpIsobaric[27]) {
+					dptIsobaric[27] = tmpIsobaric[27];
 				}
 				
-				hgtIsobaric[21] += hgtDiff;
+				hgtIsobaric[27] += hgtDiff;
 				
 				tmpSurface -= 0.0065 * hgtDiff;
 			}

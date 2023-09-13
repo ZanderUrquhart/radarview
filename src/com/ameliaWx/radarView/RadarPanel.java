@@ -851,6 +851,10 @@ public class RadarPanel extends JComponent {
 
 	private void drawWarnings(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
 			ArrayList<ArrayList<PointD>> warningPolygons, ArrayList<String> warningNames) {
+		if(RadarView.warningPolygons == null) {
+			return;
+		}
+		
 		int imgWidth = (int) ((lrLon - ulLon) * ppd);
 		int imgHeight = (int) ((ulLat - lrLat) * ppd);
 

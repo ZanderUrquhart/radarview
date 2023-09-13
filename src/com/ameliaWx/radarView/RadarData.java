@@ -7,10 +7,12 @@ import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import com.ameliaWx.radarView.nwpModel.PtypeAlgorithm;
 import com.ameliaWx.radarView.nwpModel.RapInterpModel;
 import com.ameliaWx.radarView.nwpModel.RapModel;
 
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -148,7 +150,7 @@ public class RadarData {
 				Variable baseVlcyAzi = ncfile.findVariable("azimuthV_HI");
 
 				Variable specWdth = ncfile.findVariable("SpectrumWidth_HI");
-				Variable specWdthAzi = ncfile.findVariable("azimuthV_HI");
+				Variable specWdthAzi = baseVlcyAzi;
 
 				Variable diffReflAzi = ncfile.findVariable("azimuthD_HI");
 
@@ -164,6 +166,12 @@ public class RadarData {
 				System.out.println("diffRefl: " + diffRefl);
 				System.out.println("corrCoef: " + corrCoef);
 				System.out.println("diffPhse: " + diffPhse);
+
+				System.out.println("baseReflAzi: " + baseReflAzi);
+				System.out.println("baseVlcyAzi: " + baseVlcyAzi);
+				System.out.println("diffReflAzi: " + diffReflAzi);
+				System.out.println("corrCoefAzi: " + corrCoefAzi);
+				System.out.println("diffPhseAzi: " + diffPhseAzi);
 
 				reflectivity = readNexradData(baseRefl, baseReflAzi, reflPostProc, -33.0f, -32.5f, maxAmtTilts);
 				radialVelocity = readNexradData(baseVlcy, baseVlcyAzi, vlcyPostProc, -64.5f, -64.0f, maxAmtTilts);
@@ -240,6 +248,7 @@ public class RadarData {
 //		return readNexradData(rawData, azimuths, proc, -1024, -2048);
 //	}
 
+	@SuppressWarnings("deprecation")
 	private static float[][][] readNexradData(Variable rawData, Variable azimuths, PostProc proc, float ndValue,
 			float rfValue, int maxAmtTilts) throws IOException {
 		if(rawData == null) return new float[1][720][1832];
@@ -256,7 +265,6 @@ public class RadarData {
 		_data = rawData.read();
 		_azi = azimuths.read();
 
-		@SuppressWarnings("deprecation")
 		boolean isDiffRefl = ("DifferentialReflectivity_HI".equals(rawData.getName()));
 
 		if (isDiffRefl) {
@@ -589,6 +597,7 @@ public class RadarData {
 		}
 		
 		return dataStr;
+//		return dataStr + "<a: " + azi + ", r:" + range + ">";
 	}
 
 	private static final double SIZE_RADIAL = 50;
@@ -1052,7 +1061,12 @@ public class RadarData {
 								precipitationType[i][j] = (byte) RadarView.modelI1.getPrecipitationType(getScanTime(),
 										queryLat, queryLon, RadarView.srtm.getElevation(queryLat, queryLon));
 							}
-
+							
+							if(i == 710 && j == 829) {
+								System.out.println("ptype[710, 829]: " + precipitationType[i][j]);
+								RadarView.modelI1.getPrecipitationType(getScanTime(),
+									queryLat, queryLon, PtypeAlgorithm.BOURGOUIN_REVISED_EXTENDED, true, RadarView.srtm.getElevation(queryLat, queryLon), true);
+							}
 //							g.setColor(RadarView.refl12PTypesColors.getColor(reflectivity[0][i][j], RadarView.modelI0.getPrecipitationType(modelInitTime, 80 - j * 0.1, -130 + i * 0.1)));
 //							g.fillRect(i, j, 1, 1);
 						}
