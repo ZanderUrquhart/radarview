@@ -246,8 +246,7 @@ public class RadarView extends JFrame {
 		segmentTimes[0] = System.currentTimeMillis() - segmentStartTime;
 
 		loadWindow.setTitle("Initializing RadarView: Loading radiosonde sites...");
-		radiosondeList = RadiosondeSite.fourLetterCodeList();
-
+		
 		loadWindow.setTitle("Initializing RadarView: Loading cities...");
 		segmentStartTime = System.currentTimeMillis();
 		loadCities();
@@ -2240,7 +2239,14 @@ public class RadarView extends JFrame {
 				"What radiosonde would you like to view?\n", "Choose Radiosonde",
 				JOptionPane.QUESTION_MESSAGE, null, radiosondeList.toArray(), 0);
 		
-		RadiosondeWrapper.displayCurrentSounding(RadiosondeSite.findSite(radiosonde.substring(0, 4)));
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				RadiosondeWrapper.displayCurrentSounding(RadiosondeSite.findSite(radiosonde.substring(0, 4)));
+			}
+			
+		}).start();
 	}
 	
 	private static void chooseDefaultRadarSite() {
@@ -3302,6 +3308,10 @@ public class RadarView extends JFrame {
 //			System.out.println(convToGigaMega(usedMemory));
 //			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
 //			System.out.println("%");
+			loadingMessage = "Loading Radiosonde Sites...";
+			
+			radiosondeList = RadiosondeSite.fourLetterCodeList();
+			RadiosondeWrapper.initializeEarly();
 
 			loadingMessage = "Loading SRTM Data...";
 			g.repaint();
