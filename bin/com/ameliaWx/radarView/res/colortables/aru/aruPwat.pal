@@ -1,0 +1,23 @@
+;
+; Full range precipitable water and vertically integrated liquid palette
+; Made by Amelia Urquhart
+;
+
+Product: PWAT
+Units:   kg/m^2
+Step:    10
+
+Color:    0     70   70   70  218  218  218
+Color:   10    244  221  189   90   57   57
+Color:   20     57   65  103
+Color:   30    176  237  255
+Color:   40     12   27  103
+Color:   50     12  255   12   14   80   16
+Color:   60     87   40   87
+Color:   70    241   41  237
+Color:   80    110   18   12
+Color:  100    255  250   12
+
+
+ND:   0   0   0
+RF: 128   0 192

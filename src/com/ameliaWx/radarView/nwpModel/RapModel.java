@@ -11,8 +11,10 @@ import javax.imageio.ImageIO;
 
 import org.joda.time.DateTime;
 
-import com.ameliaWx.radarView.ColorScale;
-import com.ameliaWx.radarView.PointD;
+import com.ameliaWx.radarView.ColorTable;
+import com.ameliaWx.radarView.mapProjections.LambertConformalProjection;
+import com.ameliaWx.radarView.mapProjections.MapProjection;
+import com.ameliaWx.utils.general.PointF;
 
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
@@ -31,7 +33,7 @@ public class RapModel implements NwpModel {
 	public static void main(String[] args) throws IOException {
 		@SuppressWarnings("deprecation")
 		NetcdfFile rapFile = NetcdfFile.open("/home/a-urq/Downloads/rap.t15z.awip32f49.grib2");
-		ColorScale tmpScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
+		ColorTable tmpScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
 				0.1f, 10, "K");
 
 		RapModel rap = new RapModel(rapFile);
@@ -209,10 +211,10 @@ public class RapModel implements NwpModel {
 
 	public float getData(int time, double latitude, double longitude, NwpField f, InterpolationMode m,
 			boolean srtmAdjusted) {
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 
 		if (InterpolationMode.NEAREST_NEIGHBOR == m) {
-			if (proj.inDomain(ij)) {
+			if (proj.inDomain(ij) && proj.inDomain(PointF.add(ij, new PointF(1, 1)))) {
 				int i = (int) Math.round(ij.getX());
 				int j = (int) Math.round(ij.getY());
 
@@ -221,7 +223,7 @@ public class RapModel implements NwpModel {
 				return -1024.0f;
 			}
 		} else if (InterpolationMode.BILINEAR == m) {
-			if (proj.inDomain(ij)) {
+			if (proj.inDomain(ij) && proj.inDomain(PointF.add(ij, new PointF(1, 1)))) {
 				float i = (float) ij.getX();
 				float j = (float) ij.getY();
 
@@ -266,7 +268,7 @@ public class RapModel implements NwpModel {
 
 	private float getData(int time, float iD, float jD, int i, int j, float w00, float w01, float w10, float w11, NwpField f) {
 //		if(f == NwpField.PRES_SURF) System.out.println(iD + "\t" + jD);
-		if (proj.inDomain(new PointD(iD, jD))) {
+		if (proj.inDomain(new PointF(iD, jD))) {
 			if (w00 == 1) {
 				float d00 = modelData[fieldIds.get(f)][time][j][i];
 				
@@ -314,7 +316,7 @@ public class RapModel implements NwpModel {
 
 	private float getData(int time, double iD, double jD, int i, int j, float w00, float w01, float w10, float w11, int fId) {
 //		if(f == NwpField.PRES_SURF) System.out.println(iD + "\t" + jD);
-		if (proj.inDomain(new PointD(iD, jD))) {
+		if (proj.inDomain(new PointF(iD, jD))) {
 			if (w00 == 1) {
 				float d00 = modelData[fId][time][j][i];
 				
@@ -368,7 +370,7 @@ public class RapModel implements NwpModel {
 			boolean srtmAdjusted) {
 		HashMap<NwpField, Float> data = new HashMap<>();
 
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 //		System.out.println("IJ\t" + ij);
 
 		float iD = (float) ij.getX();
@@ -417,7 +419,7 @@ public class RapModel implements NwpModel {
 			boolean srtmAdjusted) {
 		HashMap<NwpField, Float> data = new HashMap<>();
 
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 
 		float iD = (float) ij.getX();
 		float jD = (float) ij.getY();
@@ -482,7 +484,7 @@ public class RapModel implements NwpModel {
 			boolean srtmAdjusted) {
 		float[] data = new float[68 + 6 * 3];
 		
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 		
 		if(proj.inDomain(ij)) {
 			float iD = (float) ij.getX();

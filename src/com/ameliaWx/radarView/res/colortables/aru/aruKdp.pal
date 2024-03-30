@@ -1,0 +1,23 @@
+;
+; Full range KDP palette
+; Made by Zander Urquhart
+;
+
+Product: DP
+Units:   DEG/KM
+Step:    30
+
+Color:  -2.0     64   64   64
+Color:  -1.0    150  150  150
+Color:  -0.5     64    0   16
+Color:   0.0    128    0    0
+Color:   1.0    255  128  128
+Color:   2.0     96    0  128
+Color:   3.0    128  128  255
+Color:   4.0      0   64    0
+Color:   5.0    255  255  128
+Color:   6.0    128   64    0
+Color:  10.0    255  255  255
+
+ND:   0   0   0
+RF: 128   0 192

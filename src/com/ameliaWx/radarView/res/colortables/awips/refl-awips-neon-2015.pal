@@ -1,0 +1,24 @@
+# https://www.colortables.com/reflectivity/awips-neon-2015
+
+product: BR
+units: dBZ
+step: 5
+
+solidcolor: 90 58 103 181
+solidcolor: 89 58 103 181   
+Color:           75   5 236 240 1  32  32  
+Color:           70 178   0 255      105   0 219
+Color:           65 255 117 255      225  11 227
+Color:           60 255 255 255      255 157 255
+Color:           50 255   0   0       75   0   0
+Color:           40 255 226   0      255 128   0
+color:           35 255 255   0      255 226   0
+Color:           32  17 100  17       17 100  17
+Color:           25  17 214  24
+Color:           22 140 230 255
+color:           19 30 148 242
+Color:           15  22  65 175
+Color:           10  19  33  62
+Color4:          -5  40  48  66 100
+color4:          -20 162 66 213 0
+Color4:          -30 56 18 78 0

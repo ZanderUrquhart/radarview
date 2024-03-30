@@ -1,0 +1,23 @@
+;
+; Full range reflectivity palette (low filter)
+; Made by Amelia Urquhart
+;
+
+Product: BR
+Units:  DBZ
+Step:   10
+
+
+Color:    0      0    0    0
+Color:   10      0    0   96  128  255  255
+Color:   20    128  255  192
+Color:   30      0   48   16
+Color:   40    255  255  128
+Color:   50     64    0    0
+Color:   60    255  127  255
+Color:   70     64    0   64
+Color:   80    128  255  255
+
+
+ND:   0   0   0
+RF: 128   0 192

@@ -6,9 +6,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.ameliaWx.soundingViewer.MapInset;
+import com.ameliaWx.utils.general.PointF;
 
 public class RadarMapInset implements MapInset {
 	private BufferedImage radarImage = RadarPanel.getRadarImageForMapInset();
@@ -41,10 +41,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(255, 255, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getStateBorders()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getStateBorders()) {
 			for (int i = 0; i < polygon.size(); i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -74,10 +74,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(255, 255, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getCanadianProvinces()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getCanadianProvinces()) {
 			for (int i = 0; i < polygon.size(); i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -107,10 +107,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(255, 255, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getEstados()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getEstados()) {
 			for (int i = 0; i < polygon.size(); i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -140,10 +140,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(255, 255, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getCountyBorders()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getCountyBorders()) {
 			for (int i = 0; i < polygon.size(); i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -172,10 +172,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(255, 255, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getCanadianProvincesSubd()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getCanadianProvincesSubd()) {
 			for (int i = 0; i < polygon.size(); i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get((i == polygon.size() - 1) ? 0 : (i + 1));
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -204,10 +204,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(0, 0, 0));
 		gg.setStroke(ts);
-		for (ArrayList<PointD> polygon : RadarPanel.getInterstates()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getInterstates()) {
 			for (int i = 0; i < polygon.size() - 1; i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(i + 1);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(i + 1);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -231,12 +231,12 @@ public class RadarMapInset implements MapInset {
 			}
 		}
 
-		gg.setColor(new Color(180, 0, 0));
+		gg.setColor(new Color(128, 0, 0));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getInterstates()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getInterstates()) {
 			for (int i = 0; i < polygon.size() - 1; i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(i + 1);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(i + 1);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -265,10 +265,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(0, 0, 0));
 		gg.setStroke(ts);
-		for (ArrayList<PointD> polygon : RadarPanel.getMajorRoads()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getMajorRoads()) {
 			for (int i = 0; i < polygon.size() - 1; i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(i + 1);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(i + 1);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -294,10 +294,10 @@ public class RadarMapInset implements MapInset {
 
 		gg.setColor(new Color(127, 127, 255));
 		gg.setStroke(bs);
-		for (ArrayList<PointD> polygon : RadarPanel.getMajorRoads()) {
+		for (ArrayList<PointF> polygon : RadarPanel.getMajorRoads()) {
 			for (int i = 0; i < polygon.size() - 1; i++) {
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(i + 1);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(i + 1);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -327,7 +327,7 @@ public class RadarMapInset implements MapInset {
 		gg.setStroke(blk);
 
 		for (int p = 0; p < RadarView.warningPolygons.size(); p++) {
-			ArrayList<PointD> polygon = RadarView.warningPolygons.get(p);
+			ArrayList<PointF> polygon = RadarView.warningPolygons.get(p);
 
 			gg.setColor(Color.BLACK);
 
@@ -336,8 +336,8 @@ public class RadarMapInset implements MapInset {
 				if (j == polygon.size())
 					j = 0;
 
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(j);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(j);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -364,7 +364,7 @@ public class RadarMapInset implements MapInset {
 		gg.setStroke(clr);
 
 		for (int p = 0; p < RadarView.warningPolygons.size(); p++) {
-			ArrayList<PointD> polygon = RadarView.warningPolygons.get(p);
+			ArrayList<PointF> polygon = RadarView.warningPolygons.get(p);
 			String name = RadarView.warningNames.get(p).substring(5, 7);
 			String nameW = RadarView.warningNames.get(p).trim();
 
@@ -387,8 +387,8 @@ public class RadarMapInset implements MapInset {
 				if (j == polygon.size())
 					j = 0;
 
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(j);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(j);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -421,7 +421,7 @@ public class RadarMapInset implements MapInset {
 		gg.setStroke(blk2);
 
 		for (int p = 0; p < RadarView.watchParallelograms.size(); p++) {
-			ArrayList<PointD> polygon = RadarView.watchParallelograms.get(p);
+			ArrayList<PointF> polygon = RadarView.watchParallelograms.get(p);
 			String name = RadarView.spcWatchNames.get(p).trim();
 
 			gg.setColor(new Color(0, 0, 0, 0));
@@ -435,8 +435,8 @@ public class RadarMapInset implements MapInset {
 				if (j == polygon.size())
 					j = 0;
 
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(j);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(j);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();
@@ -458,7 +458,7 @@ public class RadarMapInset implements MapInset {
 		gg.setStroke(clr2);
 
 		for (int p = 0; p < RadarView.watchParallelograms.size(); p++) {
-			ArrayList<PointD> polygon = RadarView.watchParallelograms.get(p);
+			ArrayList<PointF> polygon = RadarView.watchParallelograms.get(p);
 			String name = RadarView.spcWatchNames.get(p).trim();
 
 			gg.setColor(new Color(0, 0, 0, 0));
@@ -472,8 +472,8 @@ public class RadarMapInset implements MapInset {
 				if (j == polygon.size())
 					j = 0;
 
-				PointD p1 = polygon.get(i);
-				PointD p2 = polygon.get(j);
+				PointF p1 = polygon.get(i);
+				PointF p2 = polygon.get(j);
 
 				double lat1 = p1.getY();
 				double lon1 = p1.getX();

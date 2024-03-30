@@ -168,6 +168,30 @@ public class RapInterpModel {
 			case BOURGOUIN_REVISED_EXTENDED:
 				ptype = PtypeAlgorithms.bourgouinRevisedExtendedMethod(pressureLevels, tmpIsobaric, dptIsobaric,
 						hgtIsobaric, presSurface, hgtSurface, tmpSurface, dynamicInitLayer, debug);
+				
+//				PrecipitationType ptypeBourg = PtypeAlgorithms.bourgouinRevisedExtendedMethod(pressureLevels, tmpIsobaric, dptIsobaric,
+//						hgtIsobaric, presSurface, hgtSurface, tmpSurface, dynamicInitLayer, debug);
+//				PrecipitationType ptypeRamer = PtypeAlgorithms.ramerMethod(pressureLevels, tmpIsobaric, dptIsobaric,
+//						hgtIsobaric, presSurface, hgtSurface);
+//
+//				if(ptypeBourg == PrecipitationType.ICE_PELLETS) {
+//					ptype = PrecipitationType.ICE_PELLETS;
+//				} else if(ptypeRamer == PrecipitationType.ICE_PELLETS) {
+//					ptype = PrecipitationType.ICE_PELLETS;
+//				} else if(ptypeRamer == PrecipitationType.ICEP_SNOW_MIX) {
+//					ptype = PrecipitationType.ICEP_SNOW_MIX;
+//				} else if(ptypeRamer == PrecipitationType.RAIN_ICEP_MIX || ptypeRamer == PrecipitationType.FRZR_ICEP_MIX) {
+//					if(ptypeBourg == PrecipitationType.RAIN || ptypeBourg == PrecipitationType.RAIN_ICEP_MIX) {
+//						ptype = PrecipitationType.RAIN_ICEP_MIX;
+//					} else if(ptypeBourg == PrecipitationType.FREEZING_RAIN_SURFACE 
+//							|| ptypeBourg == PrecipitationType.FREEZING_RAIN_ELEVATED 
+//							|| ptypeBourg == PrecipitationType.FRZR_ICEP_MIX) {
+//						ptype = PrecipitationType.FRZR_ICEP_MIX;
+//					}
+//				} else {
+//					ptype = ptypeBourg;
+//				}
+				
 				break;
 			case URQUHART_EXPERIMENTAL:
 				break;

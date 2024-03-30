@@ -1,0 +1,18 @@
+; Based on the color table used at the Oklahoma Weather Lab WDTD April 12 2023 event
+
+product:BR
+units: dBZ
+step: 5
+
+color: -20 0 0 0 128 128 128
+color: 15 128 255 240
+color: 25 128 255 150 0 48 0
+color: 35 32 64 0
+color: 40 255 255 110 200 110 0
+color: 50 255 0 0 32 0 0
+color: 60 255 255 255 
+color: 65 157 102 157 40 10 40
+color: 70 0 255 255
+color: 80 10 40 40
+
+nd: 0 0 0

@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
-import com.ameliaWx.radarView.PointD;
+import com.ameliaWx.radarView.mapProjections.MapProjection;
+import com.ameliaWx.radarView.mapProjections.PolarStereographicProjection;
+import com.ameliaWx.utils.general.PointF;
 
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
@@ -134,7 +136,7 @@ public class HrrrAkSubhourlyModel {
 
 	public double getData(int time, double latitude, double longitude, NwpField f, InterpolationMode m,
 			boolean srtmAdjusted) {
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 
 		if (InterpolationMode.NEAREST_NEIGHBOR == m) {
 			if (proj.inDomain(ij)) {
@@ -222,7 +224,7 @@ public class HrrrAkSubhourlyModel {
 			boolean srtmAdjusted) {
 		HashMap<NwpField, Double> data = new HashMap<>();
 		
-		PointD ij = proj.projectLatLonToIJ(longitude, latitude);
+		PointF ij = proj.projectLatLonToIJ(longitude, latitude);
 		
 		int i = (int) ij.getX();
 		int j = (int) ij.getY();

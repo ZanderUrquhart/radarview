@@ -1,0 +1,19 @@
+;
+; Full range wintry mix reflectivity palette (low filter)
+; Made by Zander Urquhart
+;
+
+Product: BR
+Units:  DBZ
+Step:   10
+
+Color:    0      0    0    0
+Color:   20    255  170  170
+Color:   30    192    0    0   64    0    0
+Color:   40     32   32   64
+Color:   45    127  225  255
+Color:   50    215  235  255
+Color:   60     30   90   30
+
+ND:   0   0   0
+RF: 128   0 192

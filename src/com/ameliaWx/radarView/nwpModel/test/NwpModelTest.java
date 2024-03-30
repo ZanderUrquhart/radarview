@@ -10,20 +10,20 @@ import javax.imageio.ImageIO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import com.ameliaWx.radarView.ColorScale;
-import com.ameliaWx.radarView.PointD;
+import com.ameliaWx.radarView.ColorTable;
 import com.ameliaWx.radarView.RadarPanel;
 import com.ameliaWx.radarView.nwpModel.HrrrAkSubhourlyModel;
 import com.ameliaWx.radarView.nwpModel.HrrrSubhourlyModel;
 import com.ameliaWx.radarView.nwpModel.HybridModel;
 import com.ameliaWx.radarView.nwpModel.HybridModelInterp;
-import com.ameliaWx.radarView.nwpModel.LambertConformalProjection;
+import com.ameliaWx.radarView.mapProjections.LambertConformalProjection;
 import com.ameliaWx.radarView.nwpModel.NwpField;
 import com.ameliaWx.radarView.nwpModel.PtypeAlgorithm;
 import com.ameliaWx.radarView.nwpModel.RapInterpModel;
 import com.ameliaWx.radarView.nwpModel.RapModel;
 import com.ameliaWx.weatherUtils.WeatherUtils;
 import com.ameliaWx.srtmWrapper.SrtmModel;
+import com.ameliaWx.utils.general.PointF;
 
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -34,7 +34,7 @@ public class NwpModelTest {
 	// probably need to prepare a pal file for that
 
 	public static void main(String[] args) throws IOException {
-		timeInterpTest();
+		hybridModelTest();
 	}
 
 	public static void presSurfTest() throws IOException {
@@ -128,11 +128,11 @@ public class NwpModelTest {
 
 		float[][] reflRaw = RapModel.readVariable3Dim(reflVar)[0];
 
-		ColorScale ptypeScale = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl-12Ptypes.pal"), 0.1f, 10,
+		ColorTable ptypeScale = new ColorTable(RadarPanel.loadResourceAsFile("res/aruRefl-12Ptypes.pal"), 0.1f, 10,
 				"dBZ");
 
-		PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-		PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+		PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+		PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 
 		double[][] reflProjected = new double[70 * 50 + 1][35 * 50 + 1];
 		double[][] srtmElev = new double[70 * 50 + 1][35 * 50 + 1];
@@ -150,7 +150,7 @@ public class NwpModelTest {
 
 					double refl = -1024.0;
 
-					PointD ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
+					PointF ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
 
 					if (LambertConformalProjection.rapProj.inDomain(ij)) {
 						float _i = (float) ij.getX();
@@ -239,7 +239,7 @@ public class NwpModelTest {
 
 		float[][] reflRaw = RapModel.readVariable3Dim(reflVar)[0];
 
-		ColorScale ptypeScale = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl-12Ptypes.pal"), 0.1f, 10,
+		ColorTable ptypeScale = new ColorTable(RadarPanel.loadResourceAsFile("res/aruRefl-12Ptypes.pal"), 0.1f, 10,
 				"dBZ");
 
 		int[][] dataProjected = new int[180 * 10 + 1][90 * 10 + 1];
@@ -268,8 +268,8 @@ public class NwpModelTest {
 
 //		System.exit(0);
 
-		PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-		PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+		PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+		PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 
 		BufferedImage dataProjectedImg = new BufferedImage(dataProjected.length / 2, dataProjected[0].length / 2,
 				BufferedImage.TYPE_3BYTE_BGR);
@@ -289,7 +289,7 @@ public class NwpModelTest {
 
 					double refl = -1024.0;
 
-					PointD ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
+					PointF ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
 
 					if (LambertConformalProjection.rapProj.inDomain(ij)) {
 						float _i = (float) ij.getX();
@@ -363,7 +363,7 @@ public class NwpModelTest {
 
 					double refl = -1024.0;
 
-					PointD ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
+					PointF ij = LambertConformalProjection.rapProj.projectLatLonToIJ(longitude, latitude);
 
 					if (LambertConformalProjection.rapProj.inDomain(ij)) {
 						float _i = (float) ij.getX();
@@ -481,9 +481,9 @@ public class NwpModelTest {
 		usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		System.out.println(convToGigaMega(usedMemory));
 
-		ColorScale tmpScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
+		ColorTable tmpScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
 				0.1f, 10, "K");
-		ColorScale dptScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruDptAlt.pal"),
+		ColorTable dptScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/ModelView/src/com/ameliaWx/modelView/prototypes/res/aruDpt2.pal"),
 				0.1f, 10, "K");
 
 		double[][] dataProjected = new double[360 * 10 + 1][180 * 10 + 1];
@@ -502,8 +502,8 @@ public class NwpModelTest {
 			}
 		}
 
-		PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-		PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+		PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+		PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 
 		BufferedImage dataProjectedImg = new BufferedImage(dataProjected.length / 2, dataProjected[0].length / 2,
 				BufferedImage.TYPE_3BYTE_BGR);
@@ -602,9 +602,9 @@ public class NwpModelTest {
 		NetcdfFile hrrrAkFile = NetcdfFile
 				.open("/home/a-urq/Documents/NwpModelTestImages/hrrr.t00z.wrfsubhf01.ak.grib2");
 
-		ColorScale tmpScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
+		ColorTable tmpScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
 				0.1f, 10, "K");
-		ColorScale dptScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruDptAlt.pal"),
+		ColorTable dptScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/ModelView/src/com/ameliaWx/modelView/prototypes/res/aruDpt2.pal"),
 				0.1f, 10, "K");
 
 		HybridModel model = new HybridModel(rapFile, hrrrFile, hrrrAkFile);
@@ -625,8 +625,8 @@ public class NwpModelTest {
 			}
 		}
 
-		PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-		PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+		PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+		PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 
 		System.out.println("Oklahoma test:");
 		double oklahomaTmp2m = model.getData(0, 35, -97, NwpField.TMP_2M);
@@ -654,9 +654,9 @@ public class NwpModelTest {
 
 					if (latitude >= rapBoundingBoxSE.getX() && latitude <= rapBoundingBoxNW.getX()
 							&& longitude >= rapBoundingBoxNW.getY() && longitude <= rapBoundingBoxSE.getY()) {
-						dataProjected[i][j] = model.getData(3, latitude, longitude, NwpField.TMP_2M);
+						dataProjected[i][j] = model.getData(0, latitude, longitude, NwpField.TMP_2M);
 
-						dataProjectedDpt[i][j] = model.getData(3, latitude, longitude, NwpField.DPT_2M);
+						dataProjectedDpt[i][j] = model.getData(0, latitude, longitude, NwpField.DPT_2M);
 
 //						System.out.println("projecting data...\t" + i + "\t" + j + "\t" + dataProjected[i][j]);
 
@@ -696,8 +696,8 @@ public class NwpModelTest {
 
 						if (latitude >= rapBoundingBoxSE.getX() && latitude <= rapBoundingBoxNW.getX()
 								&& longitude >= rapBoundingBoxNW.getY() && longitude <= rapBoundingBoxSE.getY()) {
-							dataProjected[i][j] = model.getData(3, latitude, longitude, NwpField.values()[8 + z * 5]);
-							double rh = model.getData(3, latitude, longitude, NwpField.values()[9 + z * 5]);
+							dataProjected[i][j] = model.getData(0, latitude, longitude, NwpField.values()[8 + z * 5]);
+							double rh = model.getData(0, latitude, longitude, NwpField.values()[9 + z * 5]);
 
 							dataProjectedDpt[i][j] = WeatherUtils.dewpoint(dataProjected[i][j], rh / 100.0);
 
@@ -774,13 +774,13 @@ public class NwpModelTest {
 		usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		System.out.println(convToGigaMega(usedMemory));
 
-		ColorScale tmpScale = new ColorScale(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
+		ColorTable tmpScale = new ColorTable(new File("/home/a-urq/eclipse-workspace/OneOffExperiments/aruTmp.pal"),
 				0.1f, 10, "K");
 
 		double[][] dataProjected = new double[360 * 30 + 1][180 * 30 + 1];
 
-		PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-		PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+		PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+		PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 
 		BufferedImage dataProjectedImg = new BufferedImage(dataProjected.length / 2, dataProjected[0].length / 2,
 				BufferedImage.TYPE_3BYTE_BGR);

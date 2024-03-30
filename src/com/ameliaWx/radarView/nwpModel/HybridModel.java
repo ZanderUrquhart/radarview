@@ -2,7 +2,9 @@ package com.ameliaWx.radarView.nwpModel;
 
 import java.util.HashMap;
 
-import com.ameliaWx.radarView.PointD;
+import com.ameliaWx.radarView.mapProjections.LambertConformalProjection;
+import com.ameliaWx.radarView.mapProjections.PolarStereographicProjection;
+import com.ameliaWx.utils.general.PointF;
 
 import ucar.nc2.NetcdfFile;
 
@@ -11,13 +13,13 @@ public class HybridModel implements NwpModel {
 	private HrrrSubhourlyModel hrrr;
 	private HrrrAkSubhourlyModel hrrrAk;
 
-	private static final PointD hrrrBoundingBoxNW = new PointD(53.0, -135.0);
-	private static final PointD hrrrBoundingBoxSE = new PointD(21.0, -60.0);
-	private static final PointD hrrrAkBoundingBoxNW = new PointD(80.0, -180.0);
-	private static final PointD hrrrAkBoundingBoxSE = new PointD(40.0, -110.0);
+	private static final PointF hrrrBoundingBoxNW = new PointF(53.0, -135.0);
+	private static final PointF hrrrBoundingBoxSE = new PointF(21.0, -60.0);
+	private static final PointF hrrrAkBoundingBoxNW = new PointF(80.0, -180.0);
+	private static final PointF hrrrAkBoundingBoxSE = new PointF(40.0, -110.0);
 
-	private static final PointD rapBoundingBoxNW = new PointD(85.6, -180.0);
-	private static final PointD rapBoundingBoxSE = new PointD(0.7, -2.0);
+	private static final PointF rapBoundingBoxNW = new PointF(85.6, -180.0);
+	private static final PointF rapBoundingBoxSE = new PointF(0.7, -2.0);
 	
 	public HybridModel(NetcdfFile rapFile, NetcdfFile hrrrFile, NetcdfFile hrrrAkFile) {
 		rap = new RapModel(rapFile);
@@ -43,7 +45,7 @@ public class HybridModel implements NwpModel {
 						&& latitude >= hrrrBoundingBoxSE.getX() && latitude <= hrrrBoundingBoxNW.getX()) {
 //					System.out.println("in HRRR bounding box");
 					
-					PointD hrrrIJ = LambertConformalProjection.hrrrProj.projectLatLonToIJ(longitude, latitude);
+					PointF hrrrIJ = LambertConformalProjection.hrrrProj.projectLatLonToIJ(longitude, latitude);
 
 					if (LambertConformalProjection.hrrrProj.inDomain(hrrrIJ)) {
 //						System.out.println("in HRRR domain");
@@ -68,7 +70,7 @@ public class HybridModel implements NwpModel {
 						&& latitude >= hrrrAkBoundingBoxSE.getX() && latitude <= hrrrAkBoundingBoxNW.getX()) {
 //					System.out.println("in HRRR-AK bounding box");
 					
-					PointD hrrrIJ = PolarStereographicProjection.hrrrAkProj.projectLatLonToIJ(longitude, latitude);
+					PointF hrrrIJ = PolarStereographicProjection.hrrrAkProj.projectLatLonToIJ(longitude, latitude);
 
 //					System.out.println(hrrrIJ);
 //					System.out.println(PolarStereographicProjection.hrrrAkProj.inDomain(hrrrIJ));
@@ -113,7 +115,7 @@ public class HybridModel implements NwpModel {
 		
 		if (longitude >= hrrrBoundingBoxNW.getY() && longitude <= hrrrBoundingBoxSE.getY()
 				&& latitude >= hrrrBoundingBoxSE.getX() && latitude <= hrrrBoundingBoxNW.getX()) {
-			PointD hrrrIJ = LambertConformalProjection.hrrrProj.projectLatLonToIJ(longitude, latitude);
+			PointF hrrrIJ = LambertConformalProjection.hrrrProj.projectLatLonToIJ(longitude, latitude);
 
 			if (LambertConformalProjection.hrrrProj.inDomain(hrrrIJ)) {
 				int i = (int) hrrrIJ.getX();
@@ -144,7 +146,7 @@ public class HybridModel implements NwpModel {
 
 		if (longitude >= hrrrAkBoundingBoxNW.getY() && longitude <= hrrrAkBoundingBoxSE.getY()
 				&& latitude >= hrrrAkBoundingBoxSE.getX() && latitude <= hrrrAkBoundingBoxNW.getX()) {
-			PointD hrrrAkIJ = PolarStereographicProjection.hrrrAkProj.projectLatLonToIJ(longitude, latitude);
+			PointF hrrrAkIJ = PolarStereographicProjection.hrrrAkProj.projectLatLonToIJ(longitude, latitude);
 			
 			if (PolarStereographicProjection.hrrrAkProj.inDomain(hrrrAkIJ)) {
 				int i = (int) hrrrAkIJ.getX();

@@ -1,0 +1,17 @@
+;
+; Full range ice pellets reflectivity palette (low filter)
+; Made by Zander Urquhart
+;
+
+Product: BR
+Units:  DBZ
+Step:   10
+
+Color:    0      0    0    0
+Color:   20    192  128  255
+Color:   30     80   32  200   48   16   64
+Color:   40     32   32   48
+Color:   60    215  215  245
+
+ND:   0   0   0
+RF: 128   0 192

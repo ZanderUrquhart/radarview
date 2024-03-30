@@ -1,0 +1,27 @@
+;
+; Full range high-saturation reflectivity palette
+; Made by Amelia Urquhart
+;
+
+Product: BR
+Units:  dBZ
+Step:   10
+
+Color:   -30     0    0    0
+Color:   -29.999 64    0   96
+Color:   -5    179  179  179  104  101   92
+Color:   10      0    0  255
+Color:   15      5  110  254    4  225  254
+Color:   25      0  105    5
+Color:   30      4  179   12    0  255    4
+Color:   40    255  255    0
+Color:   45    255  194    0
+Color:   50    255  132    0
+Color:   55    255   77    0  177   33   32
+Color:   60    255   83  241
+Color:   70    178   45  188
+Color:   80    128  255  255
+
+
+ND:   0   0   0
+RF: 128   0 192

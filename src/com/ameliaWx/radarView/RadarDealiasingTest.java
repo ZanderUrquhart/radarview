@@ -24,15 +24,17 @@ import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import com.ameliaWx.utils.general.PointF;
+
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 public class RadarDealiasingTest {
-	private static ArrayList<ArrayList<PointD>> countyBorders;
-	private static ArrayList<ArrayList<PointD>> stateBorders;
-	private static ArrayList<ArrayList<PointD>> interstates;
-	private static ArrayList<ArrayList<PointD>> majorRoads;
+	private static ArrayList<ArrayList<PointF>> countyBorders;
+	private static ArrayList<ArrayList<PointF>> stateBorders;
+	private static ArrayList<ArrayList<PointF>> interstates;
+	private static ArrayList<ArrayList<PointF>> majorRoads;
 
 	static {
 		File countyBordersKML = loadResourceAsFile("res/usCounties.kml");
@@ -65,9 +67,9 @@ public class RadarDealiasingTest {
 	private static final String imgId = "09";
 
 	public static void main(String[] args) throws IOException {
-		ColorScale reflectivityColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruReflLowFilter.pal"), 0.1f, 10, "dBZ");
-		ColorScale velocityColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruVlcy.pal"), 0.1f, 20, "mph");
-		ColorScale spectrumWidthColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruSpwd.pal"), 0.1f, 20, "mph");
+		ColorTable reflectivityColors = new ColorTable(RadarPanel.loadResourceAsFile("res/aruReflLowFilter.pal"), 0.1f, 10, "dBZ");
+		ColorTable velocityColors = new ColorTable(RadarPanel.loadResourceAsFile("res/aruVlcy.pal"), 0.1f, 20, "mph");
+		ColorTable spectrumWidthColors = new ColorTable(RadarPanel.loadResourceAsFile("res/aruSpwd.pal"), 0.1f, 20, "mph");
 		@SuppressWarnings("deprecation")
 		NetcdfFile ncfile = NetcdfFile.open(new File("/home/a-urq/Documents/normanTornado-20230226/data/KTLX" + filename + "_V06").getAbsolutePath());
 //		NetcdfFile ncfile = NetcdfFile.open(new File("KFDR20230216_021442.nexrad").getAbsolutePath());
@@ -425,7 +427,7 @@ public class RadarDealiasingTest {
 		g2d.drawLine(homeX + 5, homeY, homeX + 10, homeY);
 	}
 
-	private static BufferedImage drawPolarProjImage(double[][] data, int size, double res, ColorScale colors) {
+	private static BufferedImage drawPolarProjImage(double[][] data, int size, double res, ColorTable colors) {
 		if (azimuths == null || azimuths.length != size)
 			computeAzimuths(size);
 
@@ -1427,20 +1429,20 @@ public class RadarDealiasingTest {
 		gg.setColor(Color.WHITE);
 		gg.setStroke(bs);
 		for (int i = 0; i < stateBorders.size(); i++) {
-			ArrayList<PointD> state = stateBorders.get(i);
+			ArrayList<PointF> state = stateBorders.get(i);
 
 			for (int j = 0; j < state.size(); j++) {
 				int k = j + 1;
 				if (k >= state.size())
 					k = 0;
 
-				PointD p1 = state.get(j);
-				PointD p2 = state.get(k);
+				PointF p1 = state.get(j);
+				PointF p2 = state.get(k);
 
 				// prevents the weird "wobble" from panning around
-				PointD _p1 = new PointD(Math.round(p1.getX() * pixelsPerDegree) / pixelsPerDegree,
+				PointF _p1 = new PointF(Math.round(p1.getX() * pixelsPerDegree) / pixelsPerDegree,
 						Math.round(p1.getY() * pixelsPerDegree) / pixelsPerDegree);
-				PointD _p2 = new PointD(Math.round(p2.getX() * pixelsPerDegree) / pixelsPerDegree,
+				PointF _p2 = new PointF(Math.round(p2.getX() * pixelsPerDegree) / pixelsPerDegree,
 						Math.round(p2.getY() * pixelsPerDegree) / pixelsPerDegree);
 				p1 = _p1;
 				p2 = _p2;
@@ -1472,15 +1474,15 @@ public class RadarDealiasingTest {
 			gg.setColor(new Color(255, 255, 255, 127));
 			gg.setStroke(bs);
 			for (int i = 0; i < countyBorders.size(); i++) {
-				ArrayList<PointD> state = countyBorders.get(i);
+				ArrayList<PointF> state = countyBorders.get(i);
 
 				for (int j = 0; j < state.size(); j++) {
 					int k = j + 1;
 					if (k >= state.size())
 						k = 0;
 
-					PointD p1 = state.get(j);
-					PointD p2 = state.get(k);
+					PointF p1 = state.get(j);
+					PointF p2 = state.get(k);
 
 					boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 							&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -1544,13 +1546,13 @@ public class RadarDealiasingTest {
 		gh.setStroke(ts);
 
 		for (int i = 0; i < interstates.size(); i++) {
-			ArrayList<PointD> state = interstates.get(i);
+			ArrayList<PointF> state = interstates.get(i);
 
 			for (int j = 0; j < state.size() - 1; j++) {
 				int k = j + 1;
 
-				PointD p1 = state.get(j);
-				PointD p2 = state.get(k);
+				PointF p1 = state.get(j);
+				PointF p2 = state.get(k);
 
 				boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 						&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -1592,13 +1594,13 @@ public class RadarDealiasingTest {
 			gg.setColor(new Color(127, 127, 255));
 			gg.setStroke(bs);
 			for (int i = 0; i < majorRoads.size(); i++) {
-				ArrayList<PointD> state = majorRoads.get(i);
+				ArrayList<PointF> state = majorRoads.get(i);
 
 				for (int j = 0; j < state.size() - 1; j++) {
 					int k = j + 1;
 
-					PointD p1 = state.get(j);
-					PointD p2 = state.get(k);
+					PointF p1 = state.get(j);
+					PointF p2 = state.get(k);
 
 					boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 							&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -1709,7 +1711,7 @@ public class RadarDealiasingTest {
 		return slope * (value - preMin) + postMin;
 	}
 
-	private static ArrayList<ArrayList<PointD>> getPolygons(File kml) {
+	private static ArrayList<ArrayList<PointF>> getPolygons(File kml) {
 
 		Pattern p = Pattern.compile("<coordinates>.*?</coordinates>");
 
@@ -1723,13 +1725,13 @@ public class RadarDealiasingTest {
 			coordList.add(m.group().substring(13, m.group().length() - 14));
 		}
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			while (sc.hasNext()) {
 				String s = sc.next();
@@ -1741,7 +1743,7 @@ public class RadarDealiasingTest {
 				} else
 					continue;
 
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+				polygon.add(new PointF(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
 			}
 
 			sc.close();

@@ -1,0 +1,77 @@
+;
+; Full range reflectivity palette
+; Made by Zander Urquhart
+;
+
+Product: BR
+Units:  dBZ
+Step:   10
+
+Color:    0      0    0    0  RAIN
+Color:   10      0   64   32  RAIN
+Color:   20    128  255  192  RAIN
+Color:   30      0   64    0  RAIN
+Color:   40    255  255  128  RAIN
+Color:   50     64    0    0  RAIN
+Color:   60    255  127  255  RAIN
+
+Color:    0      0    0    0  FRZR_ELEV
+Color:   10     64   18   18  FRZR_ELEV
+Color:   20    255   70   70  FRZR_ELEV
+Color:   40    145    0    0  FRZR_ELEV
+Color:   60     32    0    0  FRZR_ELEV
+
+Color:    0      0    0    0  FRZR_SRFC
+Color:   10     64   43   43  FRZR_SRFC
+Color:   20    255  170  170  FRZR_SRFC
+Color:   40    255    0    0  FRZR_SRFC
+Color:   60    128    0    0  FRZR_SRFC
+
+Color:    0      0    0    0  FRZR_ICEP_MIX
+Color:   10     64   19   64  FRZR_ICEP_MIX
+Color:   20    255   75  255  FRZR_ICEP_MIX
+Color:   60     75    0   75  FRZR_ICEP_MIX
+
+Color:    0      0    0    0  ICEP
+Color:   10     51   23   64  ICEP
+Color:   20    203   93  255  ICEP
+Color:   60     48    0   64  ICEP
+
+Color:    0      0    0    0  RAIN_ICEP_MIX
+Color:   10     51   43   38  RAIN_ICEP_MIX
+Color:   20    203  173  153  RAIN_ICEP_MIX
+Color:   60     20   20   20  RAIN_ICEP_MIX
+
+Color:    0      0    0    0  RAIN_SNOW_MIX
+Color:   10     38   43   51  RAIN_SNOW_MIX
+Color:   20    153  173  203  RAIN_SNOW_MIX
+Color:   60     20   20   20  RAIN_SNOW_MIX
+
+Color:    0      0    0    0  ICEP_SNOW_MIX
+Color:   10     64   32    0  ICEP_SNOW_MIX
+Color:   20    255  128    0  ICEP_SNOW_MIX
+Color:   60     75   22    0  ICEP_SNOW_MIX
+
+Color:    0      0    0    0  FRZR_SNOW_MIX
+Color:   10     49   31   31  FRZR_SNOW_MIX
+Color:   20    194  123  123  FRZR_SNOW_MIX
+Color:   60     50   30   30  FRZR_SNOW_MIX
+
+Color:    0      0    0    0  WET_SNOW
+Color:   10     19   32   64  WET_SNOW
+Color:   20     76  127  255  WET_SNOW
+Color:   60      0    0  102  WET_SNOW
+
+Color:    0      0    0    0  DRY_SNOW
+Color:   10     19   64   64  DRY_SNOW
+Color:   20     76  255  255  DRY_SNOW
+Color:   60     20   55  102  DRY_SNOW
+
+Color:    0      0    0    0  VERY_DRY_SNOW
+Color:   10     38   64   64  VERY_DRY_SNOW
+Color:   20    153  255  255  VERY_DRY_SNOW
+Color:   60      0   30  102  VERY_DRY_SNOW
+
+
+ND:   0   0   0
+RF: 128   0 192

@@ -546,7 +546,7 @@ public class RadarData {
 						if(RadarView.numPtypes == 3) {
 							pType = "WINTRY MIX";
 						} else if(RadarView.numPtypes == 4) {
-							pType = "SNOW";
+							pType = "ICE PELLETS";
 						} else if(RadarView.numPtypes == 12) {
 							pType = "ICEP-SNOW MIX";
 						}

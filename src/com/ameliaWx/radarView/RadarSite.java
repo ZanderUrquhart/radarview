@@ -14,15 +14,17 @@ import java.util.Scanner;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import com.ameliaWx.utils.general.PointF;
+
 public class RadarSite {
 	private String siteCode;
 	private String siteCity;
-	private PointD siteCoords;
+	private PointF siteCoords;
 	
 	private boolean online;
 	private boolean warned;
 	
-	public RadarSite(String siteCode, String siteCity, PointD siteCoords) {
+	public RadarSite(String siteCode, String siteCity, PointF siteCoords) {
 		this.siteCode = siteCode;
 		this.siteCity = siteCity;
 		this.siteCoords = siteCoords;
@@ -32,7 +34,7 @@ public class RadarSite {
 	}
 	
 	public RadarSite(String siteCode, String siteCity, double latitude, double longitude) {
-		this(siteCode, siteCity, new PointD(latitude, longitude));
+		this(siteCode, siteCity, new PointF(latitude, longitude));
 	}
 
 	public String getSiteCode() {
@@ -43,7 +45,7 @@ public class RadarSite {
 		return siteCity;
 	}
 
-	public PointD getSiteCoords() {
+	public PointF getSiteCoords() {
 		return siteCoords;
 	}
 	

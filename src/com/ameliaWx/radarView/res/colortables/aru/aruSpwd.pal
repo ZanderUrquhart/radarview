@@ -1,0 +1,23 @@
+;
+; Full range spectrum width palette
+; Made by Zander Urquhart
+;
+
+Product: SW
+Units:   mph
+Step:    10
+Scale:   2.236936 ; converts mph to m/s
+
+Color:    0      5    5   10
+Color:   10    128  128  148
+Color:   15    255  128  128
+Color:   20     64    0   64
+Color:   25    255  128  255
+Color:   30      0   64    0
+Color:   35    128  255  128
+Color:   40      0   64   64
+Color:   50    128  255  255
+Color:   60    255  255  255
+
+ND:   0   0   0
+RF: 128   0 192

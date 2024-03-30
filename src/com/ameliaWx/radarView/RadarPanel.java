@@ -3,6 +3,7 @@ package com.ameliaWx.radarView;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
@@ -25,6 +26,7 @@ import javax.swing.JComponent;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
+import com.ameliaWx.utils.general.PointF;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 import com.univocity.parsers.csv.CsvWriter;
@@ -37,13 +39,13 @@ public class RadarPanel extends JComponent {
 
 	private static final long serialVersionUID = -5968064830481838268L;
 
-	private static ArrayList<ArrayList<PointD>> countyBorders;
-	private static ArrayList<ArrayList<PointD>> stateBorders;
-	private static ArrayList<ArrayList<PointD>> interstates;
-	private static ArrayList<ArrayList<PointD>> majorRoads;
-	private static ArrayList<ArrayList<PointD>> estados;
-	private static ArrayList<ArrayList<PointD>> canadianProvinces;
-	private static ArrayList<ArrayList<PointD>> canadianProvincesSubd;
+	private static ArrayList<ArrayList<PointF>> countyBorders;
+	private static ArrayList<ArrayList<PointF>> stateBorders;
+	private static ArrayList<ArrayList<PointF>> interstates;
+	private static ArrayList<ArrayList<PointF>> majorRoads;
+	private static ArrayList<ArrayList<PointF>> estados;
+	private static ArrayList<ArrayList<PointF>> canadianProvinces;
+	private static ArrayList<ArrayList<PointF>> canadianProvincesSubd;
 //	private static ArrayList<ArrayList<PointD>> metroAreas;
 //	private static ArrayList<ArrayList<PointD>> ouCampus;
 //	private static ArrayList<ArrayList<PointD>> lakeLavon;
@@ -359,19 +361,19 @@ public class RadarPanel extends JComponent {
 		BasicStroke cyn = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 		g.setStroke(cyn);
 		for (int i = 0; i < interstates.size(); i++) {
-			ArrayList<PointD> state = interstates.get(i);
+			ArrayList<PointF> state = interstates.get(i);
 
 			for (int j = 0; j < state.size() - 1; j++) {
 				int k = j + 1;
 				if (k >= state.size())
 					k = 0;
 
-				PointD p1 = state.get(j);
-				PointD p2 = state.get(k);
+				PointF p1 = state.get(j);
+				PointF p2 = state.get(k);
 
 				// prevents the weird "wobble" from panning around
-				PointD _p1 = new PointD(Math.round(p1.getX() * ppd) / ppd, Math.round(p1.getY() * ppd) / ppd);
-				PointD _p2 = new PointD(Math.round(p2.getX() * ppd) / ppd, Math.round(p2.getY() * ppd) / ppd);
+				PointF _p1 = new PointF(Math.round(p1.getX() * ppd) / ppd, Math.round(p1.getY() * ppd) / ppd);
+				PointF _p2 = new PointF(Math.round(p2.getX() * ppd) / ppd, Math.round(p2.getY() * ppd) / ppd);
 				p1 = _p1;
 				p2 = _p2;
 
@@ -414,8 +416,8 @@ public class RadarPanel extends JComponent {
 				double width = (eastLongitude - westLongitude) * pixelsPerDegree;
 				double height = (northLatitude - southLatitude) * pixelsPerDegree;
 
-				System.out.println(width);
-				System.out.println(height);
+//				System.out.println(width);
+//				System.out.println(height);
 
 				BufferedImage newBasemap = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_4BYTE_ABGR);
 				Graphics2D g = newBasemap.createGraphics();
@@ -428,20 +430,20 @@ public class RadarPanel extends JComponent {
 				gg.setColor(Color.WHITE);
 				gg.setStroke(bs);
 				for (int i = 0; i < stateBorders.size(); i++) {
-					ArrayList<PointD> state = stateBorders.get(i);
+					ArrayList<PointF> state = stateBorders.get(i);
 
 					for (int j = 0; j < state.size(); j++) {
 						int k = j + 1;
 						if (k >= state.size())
 							k = 0;
 
-						PointD p1 = state.get(j);
-						PointD p2 = state.get(k);
+						PointF p1 = state.get(j);
+						PointF p2 = state.get(k);
 
 						// prevents the weird "wobble" from panning around
-						PointD _p1 = new PointD(Math.round(p1.getX() * pixelsPerDegree) / pixelsPerDegree,
+						PointF _p1 = new PointF(Math.round(p1.getX() * pixelsPerDegree) / pixelsPerDegree,
 								Math.round(p1.getY() * pixelsPerDegree) / pixelsPerDegree);
-						PointD _p2 = new PointD(Math.round(p2.getX() * pixelsPerDegree) / pixelsPerDegree,
+						PointF _p2 = new PointF(Math.round(p2.getX() * pixelsPerDegree) / pixelsPerDegree,
 								Math.round(p2.getY() * pixelsPerDegree) / pixelsPerDegree);
 						p1 = _p1;
 						p2 = _p2;
@@ -466,15 +468,15 @@ public class RadarPanel extends JComponent {
 					}
 				}
 				for (int i = 0; i < canadianProvinces.size(); i++) {
-					ArrayList<PointD> state = canadianProvinces.get(i);
+					ArrayList<PointF> state = canadianProvinces.get(i);
 
 					for (int j = 0; j < state.size(); j++) {
 						int k = j + 1;
 						if (k >= state.size())
 							k = 0;
 
-						PointD p1 = state.get(j);
-						PointD p2 = state.get(k);
+						PointF p1 = state.get(j);
+						PointF p2 = state.get(k);
 
 						boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 								&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -496,15 +498,15 @@ public class RadarPanel extends JComponent {
 					}
 				}
 				for (int i = 0; i < estados.size(); i++) {
-					ArrayList<PointD> state = estados.get(i);
+					ArrayList<PointF> state = estados.get(i);
 
 					for (int j = 0; j < state.size(); j++) {
 						int k = j + 1;
 						if (k >= state.size())
 							k = 0;
 
-						PointD p1 = state.get(j);
-						PointD p2 = state.get(k);
+						PointF p1 = state.get(j);
+						PointF p2 = state.get(k);
 
 						boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 								&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -533,15 +535,15 @@ public class RadarPanel extends JComponent {
 					gg.setColor(new Color(255, 255, 255, 255));
 					gg.setStroke(bs);
 					for (int i = 0; i < countyBorders.size(); i++) {
-						ArrayList<PointD> state = countyBorders.get(i);
+						ArrayList<PointF> state = countyBorders.get(i);
 
 						for (int j = 0; j < state.size(); j++) {
 							int k = j + 1;
 							if (k >= state.size())
 								k = 0;
 
-							PointD p1 = state.get(j);
-							PointD p2 = state.get(k);
+							PointF p1 = state.get(j);
+							PointF p2 = state.get(k);
 
 							boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 									&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -563,15 +565,15 @@ public class RadarPanel extends JComponent {
 						}
 					}
 					for (int i = 0; i < canadianProvincesSubd.size(); i++) {
-						ArrayList<PointD> state = canadianProvincesSubd.get(i);
+						ArrayList<PointF> state = canadianProvincesSubd.get(i);
 
 						for (int j = 0; j < state.size(); j++) {
 							int k = j + 1;
 							if (k >= state.size())
 								k = 0;
 
-							PointD p1 = state.get(j);
-							PointD p2 = state.get(k);
+							PointF p1 = state.get(j);
+							PointF p2 = state.get(k);
 
 							boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 									&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -629,19 +631,19 @@ public class RadarPanel extends JComponent {
 				gg = highways.createGraphics();
 				Graphics2D gh = highwaysBg.createGraphics();
 
-				gg.setColor(new Color(180, 0, 0));
+				gg.setColor(new Color(128, 0, 0));
 				gg.setStroke(bs);
 				gh.setColor(new Color(0, 0, 0));
 				gh.setStroke(ts);
 
 				for (int i = 0; i < interstates.size(); i++) {
-					ArrayList<PointD> state = interstates.get(i);
+					ArrayList<PointF> state = interstates.get(i);
 
 					for (int j = 0; j < state.size() - 1; j++) {
 						int k = j + 1;
 
-						PointD p1 = state.get(j);
-						PointD p2 = state.get(k);
+						PointF p1 = state.get(j);
+						PointF p2 = state.get(k);
 
 						boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 								&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -683,13 +685,13 @@ public class RadarPanel extends JComponent {
 					gg.setColor(new Color(127, 127, 255));
 					gg.setStroke(bs);
 					for (int i = 0; i < majorRoads.size(); i++) {
-						ArrayList<PointD> state = majorRoads.get(i);
+						ArrayList<PointF> state = majorRoads.get(i);
 
 						for (int j = 0; j < state.size() - 1; j++) {
 							int k = j + 1;
 
-							PointD p1 = state.get(j);
-							PointD p2 = state.get(k);
+							PointF p1 = state.get(j);
+							PointF p2 = state.get(k);
 
 							boolean renderP1 = (p1.getX() >= westLongitude && p1.getX() <= eastLongitude
 									&& p1.getY() >= southLatitude && p1.getY() <= northLatitude);
@@ -850,7 +852,7 @@ public class RadarPanel extends JComponent {
 	}
 
 	private void drawWarnings(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
-			ArrayList<ArrayList<PointD>> warningPolygons, ArrayList<String> warningNames) {
+			ArrayList<ArrayList<PointF>> warningPolygons, ArrayList<String> warningNames) {
 		if(RadarView.warningPolygons == null) {
 			return;
 		}
@@ -868,7 +870,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(blk);
 
 			for (int p = 0; p < warningPolygons.size(); p++) {
-				ArrayList<PointD> polygon = warningPolygons.get(p);
+				ArrayList<PointF> polygon = warningPolygons.get(p);
 
 				g.setColor(Color.BLACK);
 
@@ -877,8 +879,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -899,7 +901,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(clr);
 
 			for (int p = 0; p < warningPolygons.size(); p++) {
-				ArrayList<PointD> polygon = warningPolygons.get(p);
+				ArrayList<PointF> polygon = warningPolygons.get(p);
 				String name = warningNames.get(p).substring(5, 7);
 				String nameW = warningNames.get(p).trim();
 
@@ -922,8 +924,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -946,15 +948,21 @@ public class RadarPanel extends JComponent {
 	}
 
 	private void drawSpcWatches(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
-			ArrayList<ArrayList<PointD>> watchPolygons, ArrayList<String> watchNames) {
-		System.out.println(watchPolygons.size());
-		System.out.println(watchNames.size());
+			ArrayList<ArrayList<PointF>> watchPolygons, ArrayList<String> watchNames) {
 		
 		int imgWidth = (int) ((lrLon - ulLon) * ppd);
 		int imgHeight = (int) ((ulLat - lrLat) * ppd);
 
 		BufferedImage watchesImg = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = watchesImg.createGraphics();
+		
+		if(watchPolygons == null) {
+			spcWatches = watchesImg;
+			return;
+		}
+		
+//		System.out.println(watchPolygons.size());
+//		System.out.println(watchNames.size());
 
 		if (RadarView.viewStormScaleWarnings) {
 			BasicStroke clr = new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
@@ -963,7 +971,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(blk);
 
 			for (int p = 0; p < watchPolygons.size(); p++) {
-				ArrayList<PointD> polygon = watchPolygons.get(p);
+				ArrayList<PointF> polygon = watchPolygons.get(p);
 				String name = watchNames.get(p).trim();
 
 				g.setColor(new Color(0, 0, 0, 0));
@@ -977,8 +985,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -999,7 +1007,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(clr);
 
 			for (int p = 0; p < watchPolygons.size(); p++) {
-				ArrayList<PointD> polygon = watchPolygons.get(p);
+				ArrayList<PointF> polygon = watchPolygons.get(p);
 				String name = watchNames.get(p).trim();
 
 				g.setColor(new Color(0, 0, 0, 0));
@@ -1013,8 +1021,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -1039,7 +1047,7 @@ public class RadarPanel extends JComponent {
 	}
 
 	private void drawWatches(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
-			ArrayList<ArrayList<PointD>> watchPolygons, ArrayList<String> watchNames) {
+			ArrayList<ArrayList<PointF>> watchPolygons, ArrayList<String> watchNames) {
 		int imgWidth = (int) ((lrLon - ulLon) * ppd);
 		int imgHeight = (int) ((ulLat - lrLat) * ppd);
 
@@ -1053,12 +1061,11 @@ public class RadarPanel extends JComponent {
 			g.setStroke(blk);
 
 			for (int p = 0; p < watchPolygons.size(); p++) {
-				ArrayList<PointD> polygon = watchPolygons.get(p);
+				ArrayList<PointF> polygon = watchPolygons.get(p);
 				String name = watchNames.get(p).trim();
 
 //				System.out.println(name);
 
-				g.setColor(new Color(0, 0, 0, 0));
 				if ("Tornado Watch".equals(name))
 					g.setColor(new Color(0, 0, 0, 196));
 				if ("Severe Thunderstorm Watch".equals(name))
@@ -1099,8 +1106,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -1121,7 +1128,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(clr);
 
 			for (int p = 0; p < watchPolygons.size(); p++) {
-				ArrayList<PointD> polygon = watchPolygons.get(p);
+				ArrayList<PointF> polygon = watchPolygons.get(p);
 				String name = watchNames.get(p).trim();
 
 				g.setColor(new Color(0, 0, 0, 0));
@@ -1165,8 +1172,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 							&& p1.getY() <= ulLat);
@@ -1191,7 +1198,7 @@ public class RadarPanel extends JComponent {
 	}
 
 	private void drawSpcOutlook(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
-			ArrayList<ArrayList<PointD>> outlookPolygons, ArrayList<String> outlookNames) {
+			ArrayList<ArrayList<PointF>> outlookPolygons, ArrayList<String> outlookNames) {
 		int imgWidth = (int) ((lrLon - ulLon) * ppd);
 		int imgHeight = (int) ((ulLat - lrLat) * ppd);
 
@@ -1206,15 +1213,15 @@ public class RadarPanel extends JComponent {
 			g.setColor(new Color(0, 0, 0));
 
 			for (int p = 0; p < outlookPolygons.size(); p++) {
-				ArrayList<PointD> polygon = outlookPolygons.get(p);
+				ArrayList<PointF> polygon = outlookPolygons.get(p);
 
 				for (int i = 0; i < polygon.size(); i++) {
 					int j = i + 1;
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 //					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 //							&& p1.getY() <= ulLat);
@@ -1235,7 +1242,7 @@ public class RadarPanel extends JComponent {
 			g.setStroke(clr);
 
 			for (int p = 0; p < outlookPolygons.size(); p++) {
-				ArrayList<PointD> polygon = outlookPolygons.get(p);
+				ArrayList<PointF> polygon = outlookPolygons.get(p);
 				String name = outlookNames.get(p);
 
 				if ("TSTM".equals(name))
@@ -1256,8 +1263,8 @@ public class RadarPanel extends JComponent {
 					if (j == polygon.size())
 						j = 0;
 
-					PointD p1 = polygon.get(i);
-					PointD p2 = polygon.get(j);
+					PointF p1 = polygon.get(i);
+					PointF p2 = polygon.get(j);
 
 //					boolean renderP1 = (p1.getX() >= ulLon && p1.getX() <= lrLon && p1.getY() >= lrLat
 //							&& p1.getY() <= ulLat);
@@ -1280,7 +1287,7 @@ public class RadarPanel extends JComponent {
 	}
 
 	private void drawSpcStormReports(double ulLon, double ulLat, double lrLon, double lrLat, double ppd,
-			ArrayList<PointD> reportPoints, ArrayList<Integer> reportNames) {
+			ArrayList<PointF> reportPoints, ArrayList<Integer> reportNames) {
 		int imgWidth = (int) ((lrLon - ulLon) * ppd);
 		int imgHeight = (int) ((ulLat - lrLat) * ppd);
 
@@ -1289,7 +1296,7 @@ public class RadarPanel extends JComponent {
 
 		if (RadarView.viewSpcStormReports) {
 			for (int i = 0; i < reportPoints.size(); i++) {
-				PointD p1 = reportPoints.get(i);
+				PointF p1 = reportPoints.get(i);
 
 				boolean renderP1 = (p1.getX() >= lrLat && p1.getX() <= ulLat && p1.getY() >= ulLon
 						&& p1.getY() <= lrLon);
@@ -1451,9 +1458,9 @@ public class RadarPanel extends JComponent {
 		for (int i = 0; i < RadarView.radarSites.size(); i++) {
 			RadarSite rs = RadarView.radarSites.get(i);
 
-			PointD rsP = rs.getSiteCoords();
+			PointF rsP = rs.getSiteCoords();
 
-			PointD _rsP = new PointD(Math.round(rsP.getX() * ppd) / ppd, Math.round(rsP.getY() * ppd) / ppd);
+			PointF _rsP = new PointF(Math.round(rsP.getX() * ppd) / ppd, Math.round(rsP.getY() * ppd) / ppd);
 			rsP = _rsP;
 
 			double lat = rsP.getX();
@@ -1474,6 +1481,17 @@ public class RadarPanel extends JComponent {
 
 	private static final String AUTHOR_MESSAGE = "MADE BY AMELIA URQUHART | PRESS 'H' FOR HELP";
 	public static final Font CAPTION_FONT = new Font(Font.MONOSPACED, Font.BOLD, 12);
+//	public static Font CAPTION_FONT;
+	
+//	static {
+//		try {
+//			CAPTION_FONT = Font.createFont(Font.TRUETYPE_FONT, loadResourceAsFile("res/UbuntuMono-B.ttf")).deriveFont(12.0f);
+//		} catch (FontFormatException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	private void drawCaptionImg(int timestep) {
 		if (captionImg == null) {
@@ -1543,8 +1561,11 @@ public class RadarPanel extends JComponent {
 			imagesHi[i][0] = BLANK_IMAGE;
 			imagesMd[i][0] = BLANK_IMAGE;
 			imagesLo[i][0] = BLANK_IMAGE;
-			RadarView.radarData[i].markDataAsRendered();
-			RadarView.g.repaint();
+			
+			if(RadarView.radarData[i] != null) {
+				RadarView.radarData[i].markDataAsRendered();
+				RadarView.g.repaint();
+			}
 		}
 	}
 	
@@ -1637,6 +1658,11 @@ public class RadarPanel extends JComponent {
 
 	public void copyToArraysOfNewLength(int newLength) {
 		System.out.println("copy to arrays of new length method");
+		
+		if(imagesLo == null) {
+			System.out.println("copyToArraysOfNewLength()::imagesLo is null");
+			return;
+		}
 
 		assert imagesLo.length == RadarView.radarData.length;
 		assert imagesLo.length == RadarView.radarDataFileNames.length;
@@ -1698,7 +1724,7 @@ public class RadarPanel extends JComponent {
 	private static int[][] azimuths;
 
 	private static BufferedImage drawPolarProjImage(float[][] data, byte[][] mask, int size, double res, double coneOfSilence,
-			ColorScale colors) {
+			ColorTable colors) {
 		if (azimuths == null || azimuths.length != size)
 			computeAzimuths(size);
 		
@@ -1790,9 +1816,9 @@ public class RadarPanel extends JComponent {
 		return slope * (value - preMin) + postMin;
 	}
 
-	private static ArrayList<ArrayList<PointD>> getPolygons(File kml) {
+	private static ArrayList<ArrayList<PointF>> getPolygons(File kml) {
 		if(kml == null) {
-			return new ArrayList<ArrayList<PointD>>();
+			return new ArrayList<ArrayList<PointF>>();
 		}
 
 		Pattern p = Pattern.compile("<coordinates>.*?</coordinates>");
@@ -1807,13 +1833,13 @@ public class RadarPanel extends JComponent {
 			coordList.add(m.group().substring(13, m.group().length() - 14));
 		}
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			while (sc.hasNext()) {
 				String s = sc.next();
@@ -1825,7 +1851,7 @@ public class RadarPanel extends JComponent {
 				} else
 					continue;
 
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+				polygon.add(new PointF(Float.valueOf(pp[0]), Float.valueOf(pp[1])));
 			}
 
 			sc.close();
@@ -1835,7 +1861,7 @@ public class RadarPanel extends JComponent {
 		return polygons;
 	}
 
-	private static ArrayList<ArrayList<PointD>> getPolygons(File poly, File meta) {
+	private static ArrayList<ArrayList<PointF>> getPolygons(File poly, File meta) {
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.getFormat().setLineSeparator("\n");
 		
@@ -1846,9 +1872,9 @@ public class RadarPanel extends JComponent {
 		List<String[]> polyRows = parser.parseAll(poly);
 		List<String[]> metaRows = parser.parseAll(meta);
 		
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 		
-		ArrayList<PointD> polygon = new ArrayList<>();
+		ArrayList<PointF> polygon = new ArrayList<>();
 		int polygonId = 0;
 		int polygonSize = Integer.valueOf(metaRows.get(polygonId)[0]);
 		
@@ -1862,7 +1888,7 @@ public class RadarPanel extends JComponent {
 			}
 			
 			String[] row = polyRows.get(i);
-			PointD point = new PointD(Double.valueOf(row[0]), Double.valueOf(row[1]));
+			PointF point = new PointF(Float.valueOf(row[0]), Float.valueOf(row[1]));
 			polygon.add(point);
 			
 //			System.out.printf("%6d\t%6d\t%6d\t%6d\t" + poly.getName() + "\n", i, polyRows.size(), polygon.size(), polygonSize);
@@ -1871,9 +1897,9 @@ public class RadarPanel extends JComponent {
 		return polygons;
 	}
 
-	private static ArrayList<ArrayList<PointD>> getPolygons(File kml, int reduction) {
+	private static ArrayList<ArrayList<PointF>> getPolygons(File kml, int reduction) {
 		if(kml == null) {
-			return new ArrayList<ArrayList<PointD>>();
+			return new ArrayList<ArrayList<PointF>>();
 		}
 		
 		Pattern p = Pattern.compile("<coordinates>.*?</coordinates>");
@@ -1888,13 +1914,13 @@ public class RadarPanel extends JComponent {
 			coordList.add(m.group().substring(13, m.group().length() - 14));
 		}
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			int vertices = 0;
 			while (sc.hasNext()) {
@@ -1908,7 +1934,7 @@ public class RadarPanel extends JComponent {
 					continue;
 
 				if (vertices % reduction == 0)
-					polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+					polygon.add(new PointF(Float.valueOf(pp[0]), Float.valueOf(pp[1])));
 				vertices++;
 			}
 
@@ -1919,31 +1945,31 @@ public class RadarPanel extends JComponent {
 		return polygons;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getCountyBorders() {
+	public static ArrayList<ArrayList<PointF>> getCountyBorders() {
 		return countyBorders;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getStateBorders() {
+	public static ArrayList<ArrayList<PointF>> getStateBorders() {
 		return stateBorders;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getInterstates() {
+	public static ArrayList<ArrayList<PointF>> getInterstates() {
 		return interstates;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getMajorRoads() {
+	public static ArrayList<ArrayList<PointF>> getMajorRoads() {
 		return majorRoads;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getEstados() {
+	public static ArrayList<ArrayList<PointF>> getEstados() {
 		return estados;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getCanadianProvinces() {
+	public static ArrayList<ArrayList<PointF>> getCanadianProvinces() {
 		return canadianProvinces;
 	}
 
-	public static ArrayList<ArrayList<PointD>> getCanadianProvincesSubd() {
+	public static ArrayList<ArrayList<PointF>> getCanadianProvincesSubd() {
 		return canadianProvincesSubd;
 	}
 	
@@ -1970,12 +1996,12 @@ public class RadarPanel extends JComponent {
 	}
 	
 	@SuppressWarnings("unused")
-	private static void polygonArrayToCsv(ArrayList<ArrayList<PointD>> polygons, String fileName) {
+	private static void polygonArrayToCsv(ArrayList<ArrayList<PointF>> polygons, String fileName) {
 		List<String[]> polygonsCsv = new ArrayList<>();
 		List<String[]> polygonsCsvMeta = new ArrayList<>();
 		
 		for(int i = 0; i < polygons.size(); i++) {
-			ArrayList<PointD> polygon = polygons.get(i);
+			ArrayList<PointF> polygon = polygons.get(i);
 			
 			int polygonSize = polygon.size();
 			

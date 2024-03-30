@@ -53,7 +53,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import com.ameliaWx.radarView.nwpModel.LambertConformalProjection;
+import com.ameliaWx.radarView.mapProjections.LambertConformalProjection;
 import com.ameliaWx.radarView.nwpModel.NwpField;
 import com.ameliaWx.radarView.nwpModel.PtypeAlgorithm;
 import com.ameliaWx.radarView.nwpModel.RapInterpModel;
@@ -63,6 +63,9 @@ import com.ameliaWx.soundingViewer.Sounding;
 import com.ameliaWx.soundingViewer.SoundingFrame;
 import com.ameliaWx.soundingViewer.unixTool.RadiosondeSite;
 import com.ameliaWx.soundingViewer.unixTool.RadiosondeWrapper;
+import com.ameliaWx.utils.general.PointF;
+import com.ameliaWx.utils.graphics.Button;
+import com.ameliaWx.utils.graphics.ButtonFunction;
 import com.ameliaWx.weatherUtils.WeatherUtils;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
@@ -125,25 +128,25 @@ public class RadarView extends JFrame {
 	public static String[] tiltChoices;
 	public static Tilt chosenTilt = Tilt._1;
 
-	public static ColorScale[] colors;
+	public static ColorTable[] colors;
 
 	public static RadarData[] radarData;
 	public static String[] radarDataFileNames;
 
-	public static ColorScale reflectivityColors;
-	public static ColorScale reflectivityColorsLowFilter;
-	public static ColorScale refl03PTypesColors;
-	public static ColorScale refl04PTypesColors;
-	public static ColorScale refl12PTypesColors;
-	public static ColorScale velocityColors;
-	public static ColorScale specWdthColors;
-	public static ColorScale diffReflColors;
-	public static ColorScale corrCoefColors;
-	public static ColorScale diffPhseColors;
-	public static ColorScale kdpColors;
+	public static ColorTable reflectivityColors;
+	public static ColorTable reflectivityColorsLowFilter;
+	public static ColorTable refl03PTypesColors;
+	public static ColorTable refl04PTypesColors;
+	public static ColorTable refl12PTypesColors;
+	public static ColorTable velocityColors;
+	public static ColorTable specWdthColors;
+	public static ColorTable diffReflColors;
+	public static ColorTable corrCoefColors;
+	public static ColorTable diffPhseColors;
+	public static ColorTable kdpColors;
 
-	public static ColorScale testColors1;
-	public static ColorScale testColors2;
+	public static ColorTable testColors1;
+	public static ColorTable testColors2;
 
 	public static double centralLat = 33;
 	public static double centralLon = -96.5;
@@ -157,6 +160,8 @@ public class RadarView extends JFrame {
 	public static int animLength = 1;
 	public static int animLengthWhenPlaying = 6;
 	public static String mostRecentFilename = "";
+	
+	public static ArrayList<Button> uiButtons = new ArrayList<>();
 
 	public static RadarView instance;
 
@@ -175,7 +180,14 @@ public class RadarView extends JFrame {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
+//		System.out.println(0xe621);
+//		
 //		System.exit(0);
+
+        // activate opengl
+        System.setProperty("sun.java2d.opengl", "true");
+        
+        System.out.println("opengl activation attempted");
 
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -212,6 +224,7 @@ public class RadarView extends JFrame {
 				new File(dataFolder + "temp/activeWW.kmz").delete();
 				new File(dataFolder + "temp/activeWW/ActiveWW.kml").delete();
 				new File(dataFolder + "temp/spcStormReports.kmz").delete();
+				new File(dataFolder + "temp/UbuntuMono-B.ttf").delete();
 			}
 		}));
 
@@ -296,23 +309,24 @@ public class RadarView extends JFrame {
 		loadWindow.setTitle("Initializing RadarView: Loading Color Scales...");
 		segmentStartTime = System.currentTimeMillis();
 
-		reflectivityColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl.pal"), 0.1f, 10, "dBZ");
-		reflectivityColorsLowFilter = new ColorScale(RadarPanel.loadResourceAsFile("res/aruReflLowFilter.pal"), 0.1f,
+//		reflectivityColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/awips/refl-awips-neon-2015.pal"), 0.1f, 10, "dBZ");
+		reflectivityColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruRefl.pal"), 0.1f, 10, "dBZ");
+		reflectivityColorsLowFilter = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruReflLowFilter.pal"), 0.1f,
 				10, "dBZ");
-		refl03PTypesColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl-3Ptypes.pal"), 0.1f, 10, "dBZ");
-		refl04PTypesColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl-4Ptypes.pal"), 0.1f, 10, "dBZ");
-		refl12PTypesColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruRefl-12Ptypes.pal"), 0.1f, 10, "dBZ");
-		velocityColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruVlcy.pal"), 0.1f, 20, "mph");
-		specWdthColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruSpwd.pal"), 0.1f, 10, "mph");
-		diffReflColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruDrfl.pal"), 0.01f, 1, "dBZ");
-		corrCoefColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruCrcf.pal"), 0.001f, 0.1f, "");
-		diffPhseColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruDphs.pal"), 0.1f, 30, "°");
-		kdpColors = new ColorScale(RadarPanel.loadResourceAsFile("res/aruKdp.pal"), 0.01f, 1, "°/km");
+		refl03PTypesColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruRefl-3Ptypes.pal"), 0.1f, 10, "dBZ");
+		refl04PTypesColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruRefl-4Ptypes.pal"), 0.1f, 10, "dBZ");
+		refl12PTypesColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruRefl-12Ptypes.pal"), 0.1f, 10, "dBZ");
+		velocityColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruVlcy.pal"), 0.1f, 20, "mph");
+		specWdthColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruSpwd.pal"), 0.1f, 10, "mph");
+		diffReflColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruDrfl.pal"), 0.01f, 1, "dBZ");
+		corrCoefColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruCrcf.pal"), 0.001f, 0.1f, "");
+		diffPhseColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruDphs.pal"), 0.1f, 30, "°");
+		kdpColors = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruKdp.pal"), 0.01f, 1, "°/km");
 
-		testColors1 = new ColorScale(RadarPanel.loadResourceAsFile("res/aruReflSnow.pal"), 0.1f, 10, "dBZ");
-		testColors2 = new ColorScale(RadarPanel.loadResourceAsFile("res/aruReflMix.pal"), 0.1f, 10, "dBZ");
+		testColors1 = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruReflSnow.pal"), 0.1f, 10, "dBZ");
+		testColors2 = new ColorTable(RadarPanel.loadResourceAsFile("res/colortables/aru/aruReflMix.pal"), 0.1f, 10, "dBZ");
 
-		colors = new ColorScale[] { reflectivityColorsLowFilter, velocityColors, specWdthColors, diffReflColors,
+		colors = new ColorTable[] { reflectivityColorsLowFilter, velocityColors, specWdthColors, diffReflColors,
 				corrCoefColors, diffPhseColors, kdpColors, refl04PTypesColors, testColors1, testColors2 };
 
 		segmentTimes[4] = System.currentTimeMillis() - segmentStartTime;
@@ -475,6 +489,18 @@ public class RadarView extends JFrame {
 		}
 
 		g.repaint();
+		
+		loadWindow.setTitle("Initializing RadarView: Initializing UI...");
+		
+		ButtonFunction productFunc = new ButtonFunction() {
+			@Override
+			public void onPress() {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		
+//		Button product = new Button();
 
 		final boolean testMultiFrame = false;
 
@@ -862,7 +888,7 @@ public class RadarView extends JFrame {
 	private static int[][] azimuths;
 
 	private static BufferedImage drawPolarProjImage(double[][] data, int[][] mask, int size, double res,
-			ColorScale colors) {
+			ColorTable colors) {
 		if (azimuths == null || azimuths.length != size)
 			computeAzimuths(size);
 
@@ -921,8 +947,8 @@ public class RadarView extends JFrame {
 		public static final Font TOWN_FONT = new Font(Font.MONOSPACED, Font.BOLD, 12);
 
 		public void paintComponent(Graphics g) {
-			System.out.println("Start paint method");
-			System.out.println("ppd: " + pixelsPerDegree);
+//			System.out.println("Start paint method");
+//			System.out.println("ppd: " + pixelsPerDegree);
 
 			Graphics2D g2d = (Graphics2D) g;
 
@@ -1293,7 +1319,7 @@ public class RadarView extends JFrame {
 //			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
 //			System.out.println("%");
 
-			instance.setTitle("RadarView Beta Version 5 (" + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
+			instance.setTitle("RadarView Beta Version 6 (RAM Usage: " + String.format("%4.1f", 100.0 * usedMemory / maxMemory)
 					+ "%, " + convToGigaMega(usedMemory).trim() + ")");
 //			long paintEndTime = System.currentTimeMillis();
 //			System.out.println("paint exec time: " + (paintEndTime - paintStartTime) + " ms");
@@ -1671,7 +1697,7 @@ public class RadarView extends JFrame {
 
 				for (int i = 0; i < radarSites.size(); i++) {
 					RadarSite r = radarSites.get(i);
-					PointD rP = r.getSiteCoords();
+					PointF rP = r.getSiteCoords();
 
 					double rLon = rP.getY();
 					double rLat = rP.getX();
@@ -1897,14 +1923,14 @@ public class RadarView extends JFrame {
 		Sounding sounding1Obj = hashMapToNwpSounding(sounding1);
 
 		// figure out wind offset angle
-		PointD dR1 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon, lat);
-		PointD dR2 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon + 0.01, lat);
-		PointD dR = PointD.subtract(dR2, dR1);
+		PointF dR1 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon, lat);
+		PointF dR2 = LambertConformalProjection.rapProj.projectLatLonToIJ(lon + 0.01, lat);
+		PointF dR = PointF.subtract(dR2, dR1);
 		double windOffsetAngle = Math.atan2(-dR.getY(), dR.getX());
 
 		SoundingFrame s = new SoundingFrame("RAP", sounding0Obj, soundingTime0, soundingMObj, soundingTimeM, sounding1Obj, soundingTime1,
-				lat, lon, windOffsetAngle, new RadarMapInset());
-		s.setLocationRelativeTo(instance);
+				lat, lon, windOffsetAngle, new RadarMapInset(), instance);
+		s.setVisible(true);
 	}
 
 	private Sounding hashMapToNwpSounding(HashMap<NwpField, Float> hashMap) {
@@ -2842,10 +2868,10 @@ public class RadarView extends JFrame {
 		}
 	}
 
-	public static ArrayList<ArrayList<PointD>> watchPolygons;
+	public static ArrayList<ArrayList<PointF>> watchPolygons;
 	public static ArrayList<String> watchNames = new ArrayList<>();
 
-	private static ArrayList<ArrayList<PointD>> getPolygonsWatches(File kml) {
+	private static ArrayList<ArrayList<PointF>> getPolygonsWatches(File kml) {
 		watchNames = new ArrayList<>();
 		Pattern p = Pattern.compile("</styleUrl><Polygon>.*?</coordinates>");
 
@@ -2879,13 +2905,13 @@ public class RadarView extends JFrame {
 
 		System.out.println(coordList.size());
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			while (sc.hasNext()) {
 				String s = sc.next();
@@ -2893,7 +2919,7 @@ public class RadarView extends JFrame {
 
 				String[] pp = s.split(",");
 
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+				polygon.add(new PointF(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
 			}
 
 			sc.close();
@@ -2906,7 +2932,7 @@ public class RadarView extends JFrame {
 	}
 
 	private static void cleanUpWatches() {
-		ArrayList<ArrayList<PointD>> watchPolygons_ = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> watchPolygons_ = new ArrayList<>();
 		ArrayList<String> watchNames_ = new ArrayList<>();
 
 		assert watchPolygons.size() == watchNames.size();
@@ -2984,10 +3010,10 @@ public class RadarView extends JFrame {
 //		System.out.println(watchPolygons_.size());
 	}
 
-	public static ArrayList<ArrayList<PointD>> watchParallelograms;
+	public static ArrayList<ArrayList<PointF>> watchParallelograms;
 	public static ArrayList<String> spcWatchNames = new ArrayList<>();
 
-	private static ArrayList<ArrayList<PointD>> getParallelogramsWatches(File kml) {
+	private static ArrayList<ArrayList<PointF>> getParallelogramsWatches(File kml) {
 		spcWatchNames = new ArrayList<>();
 		Pattern p = Pattern.compile("<href>.*?</href>");
 
@@ -3001,7 +3027,7 @@ public class RadarView extends JFrame {
 			System.out.println(href);
 		}
 
-		ArrayList<ArrayList<PointD>> parallelograms = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> parallelograms = new ArrayList<>();
 
 		for (String href : hrefList) {
 			System.out.println(href);
@@ -3034,14 +3060,14 @@ public class RadarView extends JFrame {
 					System.out.println(coords);
 				}
 
-				ArrayList<PointD> parallelogram = new ArrayList<>();
+				ArrayList<PointF> parallelogram = new ArrayList<>();
 				for(String coords : coordList) {
 					String[] c = coords.substring(1).split(" ");
 					
 					for(String coord : c) {
 						System.out.println("coord: " + coord);
 						String[] pp = coord.split(",");
-						parallelogram.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+						parallelogram.add(new PointF(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
 					}
 				}
 				
@@ -3068,10 +3094,10 @@ public class RadarView extends JFrame {
 		return parallelograms;
 	}
 
-	public static ArrayList<ArrayList<PointD>> warningPolygons;
+	public static ArrayList<ArrayList<PointF>> warningPolygons;
 	public static ArrayList<String> warningNames = new ArrayList<>();
 
-	private static ArrayList<ArrayList<PointD>> getPolygonsWarnings(File kml) {
+	private static ArrayList<ArrayList<PointF>> getPolygonsWarnings(File kml) {
 		warningNames = new ArrayList<>();
 		Pattern p = Pattern.compile("</altitudeMode>.*?</coordinates>");
 
@@ -3102,13 +3128,13 @@ public class RadarView extends JFrame {
 			}
 		}
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			while (sc.hasNext()) {
 				String s = sc.next();
@@ -3116,7 +3142,7 @@ public class RadarView extends JFrame {
 
 				String[] pp = s.split(",");
 
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+				polygon.add(new PointF(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
 			}
 
 			sc.close();
@@ -3128,10 +3154,10 @@ public class RadarView extends JFrame {
 
 	private static final String[] SPC_CATEGORIES = { "TSTM", "MRGL", "SLGT", "ENH", "MDT", "HIGH" };
 
-	public static ArrayList<ArrayList<PointD>> spcOutlookPolygons;
+	public static ArrayList<ArrayList<PointF>> spcOutlookPolygons;
 	public static ArrayList<String> spcOutlookCategories = new ArrayList<>();
 
-	private static ArrayList<ArrayList<PointD>> getPolygonsSpcOutlook(File kml) {
+	private static ArrayList<ArrayList<PointF>> getPolygonsSpcOutlook(File kml) {
 		spcOutlookCategories = new ArrayList<>();
 
 		Pattern p = Pattern.compile("(<MultiGeometry>.*?</MultiGeometry>)|(<Polygon>.*?</Polygon>)");
@@ -3160,13 +3186,13 @@ public class RadarView extends JFrame {
 			category++;
 		}
 
-		ArrayList<ArrayList<PointD>> polygons = new ArrayList<>();
+		ArrayList<ArrayList<PointF>> polygons = new ArrayList<>();
 
 		for (String coords : coordList) {
 			Scanner sc = new Scanner(coords);
 			sc.useDelimiter(" ");
 
-			ArrayList<PointD> polygon = new ArrayList<>();
+			ArrayList<PointF> polygon = new ArrayList<>();
 
 			while (sc.hasNext()) {
 				String s = sc.next();
@@ -3174,7 +3200,7 @@ public class RadarView extends JFrame {
 
 				String[] pp = s.split(",");
 
-				polygon.add(new PointD(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
+				polygon.add(new PointF(Double.valueOf(pp[0]), Double.valueOf(pp[1])));
 			}
 
 			sc.close();
@@ -3184,11 +3210,11 @@ public class RadarView extends JFrame {
 		return polygons;
 	}
 
-	public static ArrayList<PointD> spcStormReportPoints;
+	public static ArrayList<PointF> spcStormReportPoints;
 	public static ArrayList<Integer> spcStormReportTypes = new ArrayList<>(); // 0 = tornado, 1 = hail, 2 = large hail,
 																				// 3 = wind, 4 = strong wind
 
-	private static ArrayList<PointD> getPointsStormReports(File kml) {
+	private static ArrayList<PointF> getPointsStormReports(File kml) {
 		spcStormReportTypes = new ArrayList<>();
 
 		// parse by placemark
@@ -3197,7 +3223,7 @@ public class RadarView extends JFrame {
 
 		Matcher m = p.matcher(usingBufferedReader(kml));
 
-		ArrayList<PointD> reports = new ArrayList<>();
+		ArrayList<PointF> reports = new ArrayList<>();
 
 		while (m.find()) {
 			String placemark = m.group();
@@ -3236,7 +3262,7 @@ public class RadarView extends JFrame {
 				continue;
 			}
 
-			PointD coord = new PointD(Double.valueOf(latLonAlt[1]), Double.valueOf(latLonAlt[0]));
+			PointF coord = new PointF(Double.valueOf(latLonAlt[1]), Double.valueOf(latLonAlt[0]));
 
 			if ("#wind".equals(name) || "#wind_n".equals(name) || "#wind_h".equals(name)) {
 				reports.add(coord);
@@ -3309,9 +3335,13 @@ public class RadarView extends JFrame {
 //			System.out.printf("%4.1f", 100.0 * usedMemory / maxMemory);
 //			System.out.println("%");
 			loadingMessage = "Loading Radiosonde Sites...";
-			
-			radiosondeList = RadiosondeSite.fourLetterCodeList();
-			RadiosondeWrapper.initializeEarly();
+
+			try {
+				RadiosondeWrapper.initialize();
+				radiosondeList = RadiosondeSite.fourLetterCodeList();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
 			loadingMessage = "Loading SRTM Data...";
 			g.repaint();
@@ -3603,7 +3633,7 @@ public class RadarView extends JFrame {
 			String lat = row[2];
 			String lon = row[3];
 
-			RadarSite r = new RadarSite(code, city, new PointD(Double.valueOf(lat), Double.valueOf(lon)));
+			RadarSite r = new RadarSite(code, city, new PointF(Double.valueOf(lat), Double.valueOf(lon)));
 
 			radarSites.add(r);
 			radarCodes.add(code);
